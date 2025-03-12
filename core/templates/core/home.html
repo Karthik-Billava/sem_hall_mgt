@@ -5,6 +5,6 @@
     {% if user.is_authenticated %}
         <p>Hello, {{ user.username }}! Ready to book a seminar hall?</p>
     {% else %}
-        <p>Please <a href="{% url 'login' %}">log in</a> or <a href="{% url 'register' %}">register</a> to continue.</p>
+        <p>Please <a href="">log in</a> or <a href="{% url 'register' %}">register</a> to continue.</p>
     {% endif %}
 {% endblock %}

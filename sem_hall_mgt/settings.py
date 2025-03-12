@@ -31,7 +31,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    'auth'
+    'login',
     'core',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -71,6 +71,8 @@ TEMPLATES = [
         },
     },
 ]
+
+
 
 WSGI_APPLICATION = 'sem_hall_mgt.wsgi.application'
 
@@ -126,3 +128,12 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+STATICFILES_DIRS=[
+    BASE_DIR / "static"
+]
+
+
+AUTH_USER_MODEL = 'login.CustomUser'
+LOGIN_REDIRECT_URL = 'home'
+
