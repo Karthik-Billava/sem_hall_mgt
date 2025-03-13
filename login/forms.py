@@ -8,6 +8,11 @@ class CustomUserCreationForm(UserCreationForm):
     class Meta:
         model = CustomUser
         fields = ['username', 'email', 'user_type', 'password1', 'password2']
+        help_texts = {
+            'username': None,
+            'password1': None,
+            'password2': None,
+        }
 
 class LoginForm(forms.Form):
     username = forms.CharField(max_length=150, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Username'}))
