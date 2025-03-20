@@ -15,8 +15,11 @@ def register(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
-            redirect_path = reverse("corehome56:home")
-            return HttpResponseRedirect(redirect_path)
+            # Redirect based on user type
+            if user.user_type == 'venue_manager':
+                return redirect('corehome56:manager_dashboard')
+            else:
+                return redirect('corehome56:regular_dashboard')
     else:
         form = CustomUserCreationForm()
 
@@ -34,7 +37,11 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            return redirect('corehome56:home')
+            # Redirect based on user type
+            if user.user_type == 'venue_manager':
+                return redirect('corehome56:manager_dashboard')
+            else:
+                return redirect('corehome56:regular_dashboard')
         else:
             messages.error(request, 'Invalid username or password')
     form=LoginForm()

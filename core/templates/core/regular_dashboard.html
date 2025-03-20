@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Regular User Dashboard{% endblock title %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1>Welcome, {{ user.username }}!</h1>
+            <p class="lead">Your Regular User Dashboard</p>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-calendar-alt me-2"></i>My Bookings</h5>
+                    <p class="card-text">View and manage your seminar hall bookings.</p>
+                    <a href="#" class="btn btn-primary">View Bookings</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-search me-2"></i>Find Venues</h5>
+                    <p class="card-text">Search for available seminar halls to book.</p>
+                    <a href="#" class="btn btn-primary">Search Venues</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-user me-2"></i>My Profile</h5>
+                    <p class="card-text">View and update your profile information.</p>
+                    <a href="#" class="btn btn-primary">Edit Profile</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-question-circle me-2"></i>Help & Support</h5>
+                    <p class="card-text">Get help with booking seminar halls.</p>
+                    <a href="#" class="btn btn-primary">Contact Support</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

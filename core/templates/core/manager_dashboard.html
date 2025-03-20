@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Venue Manager Dashboard{% endblock title %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1>Welcome, {{ user.username }}!</h1>
+            <p class="lead">Venue Manager Dashboard</p>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-building me-2"></i>My Venues</h5>
+                    <p class="card-text">Manage seminar halls that you oversee.</p>
+                    <a href="#" class="btn btn-primary">Manage Venues</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-calendar-check me-2"></i>Booking Requests</h5>
+                    <p class="card-text">View and approve booking requests for your venues.</p>
+                    <a href="#" class="btn btn-primary">View Requests</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-chart-line me-2"></i>Analytics</h5>
+                    <p class="card-text">View booking statistics and venue usage data.</p>
+                    <a href="#" class="btn btn-primary">View Analytics</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-cog me-2"></i>Settings</h5>
+                    <p class="card-text">Configure venue availability and booking rules.</p>
+                    <a href="#" class="btn btn-primary">Manage Settings</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
