@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block title %}My Profile - Seminar Hall Management System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12 mb-4">
+        {% if user.get_full_name %}
+            <h1>{{user.get_full_name}}</h1>
+        {% else %}
+            <h1>{{user.username}}</h1>
+        {% endif %}
+        <hr>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-body text-center">
+                {% if profile.profile_picture %}
+                    <img src="{{ profile.profile_picture.url }}" alt="{{ user.username }}" class="img-fluid rounded-circle mb-3" style="max-width: 150px;">
+                {% else %}
+                    <div class="display-1 text-secondary mb-3">
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                {% endif %}
+                <h3>{{ user.get_full_name }}</h3>
+                <p class="text-muted">@{{ user.username }}</p>
+                <p>
+                    <span class="badge bg-primary">{{ profile.get_user_type_display }}</span>
+                </p>
+                <a href="{% url "edit_profile" %}" class="btn btn-primary">
+                    <i class="fas fa-edit me-2"></i>Edit Profile
+                </a>
+            </div>
+        </div>
+        
+        {% if profile.user_type == 'venue_manager' %}
+        <div class="card mt-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">Venue Manager Tools</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="" class="btn btn-outline-success">
+                        <i class="fas fa-building me-2"></i>Manage My Venues
+                    </a>
+                    <a href="" class="btn btn-outline-success">
+                        <i class="fas fa-plus me-2"></i>Add New Venue
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Personal Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-4 fw-bold">Full Name:</div>
+                    <div class="col-md-8">{{ user.get_full_name }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-4 fw-bold">Email:</div>
+                    <div class="col-md-8">{{ user.email }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-4 fw-bold">Phone Number:</div>
+                    <div class="col-md-8">{{ profile.phone_number|default:"Not provided" }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-4 fw-bold">Address:</div>
+                    <div class="col-md-8">{{ profile.address|default:"Not provided" }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-4 fw-bold">Date of Birth:</div>
+                    <div class="col-md-8">{{ profile.date_of_birth|default:"Not provided" }}</div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 fw-bold">Bio:</div>
+                    <div class="col-md-8">{{ profile.bio|default:"No bio provided"|linebreaks }}</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Recent Bookings</h5>
+                <a href="" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
