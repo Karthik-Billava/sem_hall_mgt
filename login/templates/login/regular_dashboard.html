@@ -3,21 +3,75 @@
 {% block title %}Regular User Dashboard{% endblock title %}
 
 {% block content %}
-<div class="container">
-    <div class="row mb-4">
-        <div class="col-12">
-            <h1>Welcome, {{ user.username }}!</h1>
-            <p class="lead">Your Regular User Dashboard</p>
+<!-- Hero Section -->
+<div class="bg-primary text-white p-5 rounded-3 shadow mb-5">
+    <h1 class="display-4">Find the Perfect Venue for Your Event</h1>
+    <p class="lead">Search, book, and manage seminar halls and event spaces all in one place.</p>
+    <hr class="my-4 bg-white">
+    <p>Looking for a venue for your next seminar, conference, or meeting? We've got you covered!</p>
+    <button class="btn btn-light btn-lg">
+        <i class="fas fa-search me-2"></i>Find Venues
+    </button>
+</div>
+
+<!-- How It Works Section -->
+<div class="mb-5">
+    <h2 class="text-center mb-4">How It Works</h2>
+    <p class="text-center text-muted mb-5">Simple, fast, and efficient venue booking in just a few steps</p>
+    
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <div class="display-1 text-primary mb-3">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <h3>Search</h3>
+                    <p class="text-muted">Find your ideal venue by location, capacity, and amenities.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <div class="display-1 text-primary mb-3">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <h3>Book</h3>
+                    <p class="text-muted">Select your preferred date and time for your event.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <div class="display-1 text-primary mb-3">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <h3>Confirm</h3>
+                    <p class="text-muted">Receive instant confirmation for your booking.</p>
+                </div>
+            </div>
         </div>
     </div>
+</div>
+
+<!-- Features Section -->
+<div class="mb-5">
+    <h2 class="text-center mb-4">Features</h2>
+    <p class="text-center text-muted mb-5">Everything you need for seamless venue booking</p>
     
     <div class="row">
         <div class="col-md-6 mb-4">
             <div class="card h-100">
                 <div class="card-body">
-                    <h5 class="card-title"><i class="fas fa-calendar-alt me-2"></i>My Bookings</h5>
-                    <p class="card-text">View and manage your seminar hall bookings.</p>
-                    <a href="#" class="btn btn-primary">View Bookings</a>
+                    <h4>
+                        <i class="fas fa-search text-primary me-2"></i>
+                        Advanced Search
+                    </h4>
+                    <p class="text-muted">Find the perfect venue with our powerful search filters.</p>
                 </div>
             </div>
         </div>
@@ -25,9 +79,11 @@
         <div class="col-md-6 mb-4">
             <div class="card h-100">
                 <div class="card-body">
-                    <h5 class="card-title"><i class="fas fa-search me-2"></i>Find Venues</h5>
-                    <p class="card-text">Search for available seminar halls to book.</p>
-                    <a href="#" class="btn btn-primary">Search Venues</a>
+                    <h4>
+                        <i class="fas fa-calendar-alt text-primary me-2"></i>
+                        Real-time Availability
+                    </h4>
+                    <p class="text-muted">See instant venue availability and book your slot.</p>
                 </div>
             </div>
         </div>
@@ -35,9 +91,11 @@
         <div class="col-md-6 mb-4">
             <div class="card h-100">
                 <div class="card-body">
-                    <h5 class="card-title"><i class="fas fa-user me-2"></i>My Profile</h5>
-                    <p class="card-text">View and update your profile information.</p>
-                    <a href="{% url "edit_profile" %}" class="btn btn-primary">Edit Profile</a>
+                    <h4>
+                        <i class="fas fa-credit-card text-primary me-2"></i>
+                        Secure Payments
+                    </h4>
+                    <p class="text-muted">Pay securely online for your venue bookings.</p>
                 </div>
             </div>
         </div>
@@ -45,9 +103,54 @@
         <div class="col-md-6 mb-4">
             <div class="card h-100">
                 <div class="card-body">
-                    <h5 class="card-title"><i class="fas fa-question-circle me-2"></i>Help & Support</h5>
-                    <p class="card-text">Get help with booking seminar halls.</p>
-                    <a href="#" class="btn btn-primary">Contact Support</a>
+                    <h4>
+                        <i class="fas fa-bell text-primary me-2"></i>
+                        Notifications
+                    </h4>
+                    <p class="text-muted">Get instant updates about your bookings and events.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions Section -->
+<div class="mb-5">
+    <h2 class="text-center mb-4">Quick Actions</h2>
+    
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <div class="display-4 text-primary mb-3">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <h3>Find Venues</h3>
+                    <button class="btn btn-primary">Search Now</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <div class="display-4 text-primary mb-3">
+                        <i class="fas fa-history"></i>
+                    </div>
+                    <h3>My Bookings</h3>
+                    <button class="btn btn-primary">View History</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <div class="display-4 text-primary mb-3">
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                    <h3>My Profile</h3>
+                    <a href="{% url 'profile' %}" class="btn btn-primary">View Profile</a>
                 </div>
             </div>
         </div>
