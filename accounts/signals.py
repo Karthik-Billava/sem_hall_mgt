@@ -6,9 +6,6 @@ from .models import UserProfile
 @receiver(post_save, sender=CustomUser)
 def create_or_update_user_profile(sender, instance, created, **kwargs):
     if created:
-        UserProfile.objects.create(user=instance, user_type=instance.user_type)
+        UserProfile.objects.create(user=instance)
     else:
-        UserProfile.objects.get_or_create(
-            user=instance,
-            defaults={'user_type': instance.user_type}
-        ) 
+        UserProfile.objects.get_or_create(user=instance) 
