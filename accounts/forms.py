@@ -5,7 +5,7 @@ from .models import UserProfile
 class UserProfileForm(forms.ModelForm):
     class Meta:
         model = UserProfile
-        fields = ('phone_number', 'address', 'profile_picture', 'bio', 'date_of_birth', 'user_type')
+        fields = ('first_name', 'last_name', 'phone_number', 'address', 'profile_picture', 'bio', 'date_of_birth')
         widgets = {
             'date_of_birth': forms.DateInput(attrs={'type': 'date'}),
             'bio': forms.Textarea(attrs={'rows': 4}),

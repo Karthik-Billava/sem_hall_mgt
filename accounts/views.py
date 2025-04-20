@@ -20,11 +20,15 @@ def profile_view(request):
         'profile': profile,
     })
 
+@login_required
 def edit_profile(request):
     if request.method == 'POST':
         form = UserProfileForm(request.POST, request.FILES, instance=request.user.profile)
         if form.is_valid():
-            form.save()
+            profile = form.save()
+            request.user.first_name = profile.first_name
+            request.user.last_name = profile.last_name
+            request.user.save()
             messages.success(request, 'Your profile has been updated successfully!')
             return redirect('profile')
     else:
