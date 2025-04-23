@@ -9,6 +9,16 @@ body {
     padding: 0;
 }
 
+.texta{
+    color: #000000;
+    background-color:  #f8f9fa;
+}
+.texta:active, texta:hover{
+    background-color: #4475a9;
+    color: white;
+}
+
+
 .container {
     max-width: 1200px;
     margin: 0 auto;

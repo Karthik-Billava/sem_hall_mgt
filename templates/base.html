@@ -23,8 +23,7 @@
             --accent-color: #e74c3c;
             --light-color: #ecf0f1;
             --dark-color: #2c3e50;
-        }
-        
+        }  
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f8f9fa;
@@ -32,22 +31,68 @@
         }
         
         .navbar {
-            background-color: var(--secondary-color);
+            background: linear-gradient(to right, #2c3e50, #4a738a);
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 0.75rem 0;
         }
         
         .navbar-brand {
             font-weight: bold;
             color: white !important;
+            font-size: 1.4rem;
+            padding: 0.5rem 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .navbar-brand i {
+            background-color: white;
+            color: #2c3e50;
+            padding: 0.3rem;
+            border-radius: 5px;
+            margin-right: 0.5rem;
         }
         
         .nav-link {
-            color: rgba(255, 255, 255, 0.8) !important;
+            color: rgba(255, 255, 255, 0.9) !important;
             transition: color 0.3s;
+            margin: 0 0.5rem;
+            font-weight: 500;
         }
         
         .nav-link:hover {
             color: white !important;
+        }
+        
+        .nav-icon {
+            margin-right: 5px;
+        }
+        
+        .auth-button {
+            border-radius: 50px;
+            padding: 0.5rem 1.5rem;
+            font-weight: 500;
+            transition: all 0.3s;
+            border: none;
+        }
+        
+        .login-button {
+            background-color: rgba(255, 255, 255, 0.15);
+            color: white !important;
+            margin-right: 0.5rem;
+        }
+        
+        .login-button:hover {
+            background-color: rgba(255, 255, 255, 0.25);
+        }
+        
+        .register-button {
+            background-color: #3498db;
+            color: white !important;
+        }
+        
+        .register-button:hover {
+            background-color: #2980b9;
         }
         
         .btn-primary {
@@ -79,10 +124,17 @@
         }
         
         .notification-badge {
-            position: relative;
-            top: -10px;
-            right: 5px;
+            position: absolute;
+            top: -8px;
+            right: -8px;
             background-color: var(--accent-color);
+            font-size: 0.7rem;
+            padding: 0.25rem 0.5rem;
+        }
+        
+        .notification-icon-wrapper {
+            position: relative;
+            display: inline-block;
         }
         
         /* Venue cards */
@@ -99,98 +151,107 @@
         .rating-stars {
             color: #f39c12;
         }
+        
+        /* Add spacing after navbar */
+        .navbar-wrapper {
+            margin-bottom: 2rem;
+        }
     </style>
     
     {% block extra_css %}{% endblock %}
 </head>
 <body>
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark mb-4">
-        <div class="container">
-            <a class="navbar-brand" href="{% url 'home' %}">
-                <i class="fas fa-building me-2"></i>Seminar Hall System
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'home' %}">
-                            <i class="fas fa-home me-1"></i>Home
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'venue_list' %}">
-                            <i class="fas fa-search me-1"></i>Find Venues
-                        </a>
-                    </li>
-                    {% if user.is_authenticated %}
-                        {% if user.profile.user_type == 'venue_manager' %}
+    <div class="navbar-wrapper">
+        <nav class="navbar navbar-expand-lg navbar-dark">
+            <div class="container">
+                <a class="navbar-brand" href="{% url 'home' %}">
+                    <i class="fas fa-building"></i>Seminar Hall System
+                </a>
+                
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav mx-auto">
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'manage_venues' %}">
-                                <i class="fas fa-tasks me-1"></i>Manage Venues
+                            <a class="nav-link" href="{% url 'home' %}">
+                                <i class="fas fa-home nav-icon"></i>Home
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'venue_list' %}">
+                                <i class="fas fa-search nav-icon"></i>Find Venues
+                            </a>
+                        </li>
+                        {% if user.is_authenticated %}
+                            {% if user.profile.user_type == 'venue_manager' %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'manage_venues' %}">
+                                    <i class="fas fa-tasks nav-icon"></i>Manage Venues
+                                </a>
+                            </li>
+                            {% endif %}
                         {% endif %}
-                    {% endif %}
-                </ul>
-                <ul class="navbar-nav">
-                    {% if user.is_authenticated %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'notification_list' %}">
-                                <i class="fas fa-bell me-1"></i>Notifications
-                                {% if user.notifications.unread %}
-                                <span class="badge rounded-pill notification-badge">
-                                    {{ user.notifications.unread.count }}
-                                </span>
-                                {% endif %}
+                    </ul>
+                    
+                    <div class="navbar-nav">
+                        {% if user.is_authenticated %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'notification_list' %}">
+                                    <div class="notification-icon-wrapper">
+                                        <i class="fas fa-bell nav-icon"></i>
+                                        {% if user.notifications.unread %}
+                                        <span class="badge rounded-pill notification-badge">
+                                            {{ user.notifications.unread.count }}
+                                        </span>
+                                        {% endif %}
+                                    </div>
+                                    <span class="d-none d-lg-inline-block">Notifications</span>
+                                </a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                                    <i class="fas fa-user-circle nav-icon"></i>{{ user.username }}
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li>
+                                        <a class="dropdown-item" href="{% url 'profile' %}">
+                                            <i class="fas fa-id-card me-2"></i>Profile
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="{% url 'booking_history' %}">
+                                            <i class="fas fa-history me-2"></i>Booking History
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="{% url 'notification_settings' %}">
+                                            <i class="fas fa-cog me-2"></i>Notification Settings
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <a class="dropdown-item" href="{% url 'account_logout' %}">
+                                            <i class="fas fa-sign-out-alt me-2"></i>Logout
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                        {% else %}
+                            <a class="nav-link auth-button login-button" href="{% url 'account_login' %}">
+                                <i class="fas fa-sign-in-alt nav-icon"></i>Log in
                             </a>
-                        </li>
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
-                                <i class="fas fa-user-circle me-1"></i>{{ user.username }}
+                            <a class="nav-link auth-button register-button" href="{% url 'account_signup' %}">
+                                <i class="fas fa-user-plus nav-icon"></i>Register
                             </a>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li>
-                                    <a class="dropdown-item" href="{% url 'profile' %}">
-                                        <i class="fas fa-id-card me-2"></i>Profile
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" href="{% url 'booking_history' %}">
-                                        <i class="fas fa-history me-2"></i>Booking History
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" href="{% url 'notification_settings' %}">
-                                        <i class="fas fa-cog me-2"></i>Notification Settings
-                                    </a>
-                                </li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <a class="dropdown-item" href="{% url 'account_logout' %}">
-                                        <i class="fas fa-sign-out-alt me-2"></i>Logout
-                                    </a>
-                                </li>
-                            </ul>
-                        </li>
-                    {% else %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'account_login' %}">
-                                <i class="fas fa-sign-in-alt me-1"></i>Login
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'account_signup' %}">
-                                <i class="fas fa-user-plus me-1"></i>Register
-                            </a>
-                        </li>
-                    {% endif %}
-                </ul>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
-        </div>
-    </nav>
+        </nav>
+    </div>
 
     <!-- Main Content -->
     <div class="container">
