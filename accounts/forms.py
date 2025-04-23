@@ -25,6 +25,9 @@ class CustomUserCreationForm(UserCreationForm):
 
 class UserProfileForm(forms.ModelForm):
     """Form for user profile"""
+    first_name = forms.CharField(max_length=30, required=False)
+    last_name = forms.CharField(max_length=30, required=False)
+    
     class Meta:
         model = UserProfile
         fields = ('phone_number', 'address', 'profile_picture', 'bio', 'date_of_birth', 'user_type')
@@ -39,6 +42,12 @@ class UserProfileForm(forms.ModelForm):
         help_texts = {
             'user_type': 'Select "Venue Manager" if you want to list and manage venues.',
         }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.user:
+            self.fields['first_name'].initial = self.instance.user.first_name
+            self.fields['last_name'].initial = self.instance.user.last_name
 
 class ReviewForm(forms.ModelForm):
     """Form for venue reviews"""

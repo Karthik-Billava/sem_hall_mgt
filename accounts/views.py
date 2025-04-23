@@ -27,7 +27,15 @@ def edit_profile(request):
     if request.method == 'POST':
         form = UserProfileForm(request.POST, request.FILES, instance=request.user.profile)
         if form.is_valid():
+            # Save the profile
             form.save()
+            
+            # Update the user's first and last name
+            user = request.user
+            user.first_name = form.cleaned_data['first_name']
+            user.last_name = form.cleaned_data['last_name']
+            user.save()
+            
             messages.success(request, 'Your profile has been updated successfully!')
             return redirect('profile')
     else:
