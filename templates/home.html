@@ -3,23 +3,71 @@
 {% block title %}Home - Seminar Hall Management System{% endblock %}
 
 {% block content %}
-<div class="row mb-5">
-    <div class="col-md-12">
-        <div class="bg-primary text-white p-5 rounded-3 shadow">
-            <div class="container">
-                <h1 class="display-4">Find the Perfect Venue for Your Event</h1>
-                <p class="lead">Search, book, and manage seminar halls and event spaces all in one place.</p>
-                <hr class="my-4 bg-white">
-                <p>Looking for a venue for your next seminar, conference, or meeting? We've got you covered!</p>
-                <a class="btn btn-light btn-lg" href="{% url 'venue_list' %}" role="button">
-                    <i class="fas fa-search me-2"></i>Find Venues
-                </a>
+<!-- Hero Section with Background Slideshow -->
+<div class="hero-section">
+    <!-- Background Slideshow -->
+    <div id="heroSlideshow" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="5000">
+        <div class="carousel-inner">
+            {% if latest_venues %}
+                {% for venue in latest_venues %}
+                    <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                        {% with venue.get_cover_image as cover_image %}
+                            {% if cover_image %}
+                                <a href="{% url 'venue_detail' venue_id=venue.id %}" class="hero-slide-link">
+                                    <img src="{{ cover_image.image.url }}" class="hero-slide-image" alt="{{ venue.name }}">
+                                </a>
+                            {% else %}
+                                <div class="hero-slide-placeholder">
+                                    <i class="fas fa-building fa-4x"></i>
+                                </div>
+                            {% endif %}
+                        {% endwith %}
+                        <a href="{% url 'venue_detail' venue_id=venue.id %}" class="venue-info-tag">
+                            <span class="venue-name">{{ venue.name }}</span>
+                            <span class="venue-location"><i class="fas fa-map-marker-alt me-1"></i>{{ venue.city }}</span>
+                        </a>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="carousel-item active">
+                    <div class="hero-slide-placeholder">
+                        <i class="fas fa-building fa-4x"></i>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Navigation Arrows -->
+        {% if latest_venues|length > 1 %}
+            <button class="carousel-control-prev" type="button" data-bs-target="#heroSlideshow" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Previous</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#heroSlideshow" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Next</span>
+            </button>
+        {% endif %}
+    </div>
+    
+    <!-- Content Overlay -->
+    <div class="hero-content">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-8 col-lg-6">
+                    <h1 class="hero-title">Find the Perfect Venue for Your Event</h1>
+                    <p class="hero-subtitle">Search, book, and manage seminar halls and event spaces all in one place.</p>
+                    <p class="hero-text">Looking for a venue for your next seminar, conference, or meeting? We've got you covered!</p>
+                    <a class="btn btn-light btn-lg" href="{% url 'venue_list' %}">
+                        <i class="fas fa-search me-2"></i>Find Venues
+                    </a>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<div class="row mb-5">
+<div class="row mt-5 mb-5">
     <div class="col-md-12 text-center mb-4">
         <h2>How It Works</h2>
         <p class="lead">Simple, fast, and efficient venue booking in just a few steps</p>
@@ -173,4 +221,29 @@
     </div>
 </div>
 {% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Initialize the carousel manually
+    var heroCarousel = new bootstrap.Carousel(document.getElementById('heroSlideshow'), {
+      interval: 5000,
+      ride: 'carousel',
+      wrap: true
+    });
+    
+    // Fix navigation arrows
+    document.querySelectorAll('.carousel-control-prev, .carousel-control-next').forEach(function(control) {
+      control.addEventListener('click', function(e) {
+        e.preventDefault();
+        if (this.classList.contains('carousel-control-prev')) {
+          heroCarousel.prev();
+        } else {
+          heroCarousel.next();
+        }
+      });
+    });
+  });
+</script>
 {% endblock %} 
