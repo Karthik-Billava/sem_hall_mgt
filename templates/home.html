@@ -67,145 +67,151 @@
     </div>
 </div>
 
-<div class="row mt-5 mb-5">
-    <div class="col-md-12 text-center mb-4">
-        <h2>How It Works</h2>
-        <p class="lead">Simple, fast, and efficient venue booking in just a few steps</p>
-    </div>
-    
-    <div class="col-md-4 mb-4">
-        <div class="card h-100 text-center">
-            <div class="card-body">
-                <div class="display-1 text-primary mb-3">
-                    <i class="fas fa-search"></i>
-                </div>
-                <h3 class="card-title">Search</h3>
-                <p class="card-text">Find the perfect venue by location, capacity, price, and amenities.</p>
-            </div>
+<!-- Newly Added Halls Section -->
+<div class="venue-card-container">
+    <div class="container">
+        <div class="venue-section-header">
+            <h2 class="venue-section-title">Newly Added Halls</h2>
+            <a href="{% url 'venue_list' %}" class="venue-section-link">Show all</a>
         </div>
-    </div>
-    
-    <div class="col-md-4 mb-4">
-        <div class="card h-100 text-center">
-            <div class="card-body">
-                <div class="display-1 text-primary mb-3">
-                    <i class="fas fa-calendar-check"></i>
+        
+        <div class="row">
+            {% if latest_venues %}
+                {% for venue in latest_venues|slice:":4" %}
+                    <div class="col-md-3 col-sm-6 mb-4">
+                        <a href="{% url 'venue_detail' venue_id=venue.id %}" class="text-decoration-none">
+                            <div class="venue-card">
+                                <div class="venue-card-img-container">
+                                    {% with venue.get_cover_image as cover_image %}
+                                        {% if cover_image %}
+                                            <img src="{{ cover_image.image.url }}" alt="{{ venue.name }}" class="venue-card-img">
+                                        {% else %}
+                                            <div class="venue-card-img d-flex align-items-center justify-content-center bg-secondary">
+                                                <i class="fas fa-building fa-3x text-white"></i>
+                                            </div>
+                                        {% endif %}
+                                    {% endwith %}
+                                    <div class="venue-card-tag">New</div>
+                                </div>
+                                <div class="venue-card-content">
+                                    <h3 class="venue-card-title">{{ venue.name }}</h3>
+                                    <p class="venue-card-subtitle">
+                                        <i class="fas fa-map-marker-alt me-1"></i>{{ venue.city }}
+                                    </p>
+                                    <p class="venue-bookings-count">
+                                        <i class="fas fa-users me-1"></i>Capacity: {{ venue.capacity }} seats
+                                    </p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="col-12 text-center py-5">
+                    <p class="lead text-muted">No venues available yet.</p>
                 </div>
-                <h3 class="card-title">Book</h3>
-                <p class="card-text">Select your date and time, then submit your booking request.</p>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-md-4 mb-4">
-        <div class="card h-100 text-center">
-            <div class="card-body">
-                <div class="display-1 text-primary mb-3">
-                    <i class="fas fa-check-circle"></i>
-                </div>
-                <h3 class="card-title">Confirm</h3>
-                <p class="card-text">Receive confirmation, make payment, and you're all set!</p>
-            </div>
+            {% endif %}
         </div>
     </div>
 </div>
 
-<div class="row mb-5">
-    <div class="col-md-12 text-center mb-4">
-        <h2>Features</h2>
-        <p class="lead">Everything you need to manage your venue bookings</p>
-    </div>
-    
-    <div class="col-md-6 mb-4">
-        <div class="card h-100">
-            <div class="card-body">
-                <h3 class="card-title">
-                    <i class="fas fa-search me-2 text-primary"></i>Advanced Search
-                </h3>
-                <p class="card-text">Find venues based on location, capacity, price, and available amenities.</p>
-            </div>
+<!-- Most Booked Halls Section -->
+<div class="venue-card-container">
+    <div class="container">
+        <div class="venue-section-header">
+            <h2 class="venue-section-title">Most Booked Halls</h2>
+            <a href="{% url 'venue_list' %}" class="venue-section-link">Show all</a>
         </div>
-    </div>
-    
-    <div class="col-md-6 mb-4">
-        <div class="card h-100">
-            <div class="card-body">
-                <h3 class="card-title">
-                    <i class="fas fa-calendar-alt me-2 text-primary"></i>Real-time Availability
-                </h3>
-                <p class="card-text">See venue availability in real-time and book instantly.</p>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-md-6 mb-4">
-        <div class="card h-100">
-            <div class="card-body">
-                <h3 class="card-title">
-                    <i class="fas fa-credit-card me-2 text-primary"></i>Secure Payments
-                </h3>
-                <p class="card-text">Make secure payments online for your bookings.</p>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-md-6 mb-4">
-        <div class="card h-100">
-            <div class="card-body">
-                <h3 class="card-title">
-                    <i class="fas fa-bell me-2 text-primary"></i>Notifications
-                </h3>
-                <p class="card-text">Receive real-time notifications about your bookings.</p>
-            </div>
+        
+        <div class="row">
+            {% if popular_venues %}
+                {% for venue in popular_venues|slice:":4" %}
+                    <div class="col-md-3 col-sm-6 mb-4">
+                        <a href="{% url 'venue_detail' venue_id=venue.id %}" class="text-decoration-none">
+                            <div class="venue-card">
+                                <div class="venue-card-img-container">
+                                    {% with venue.get_cover_image as cover_image %}
+                                        {% if cover_image %}
+                                            <img src="{{ cover_image.image.url }}" alt="{{ venue.name }}" class="venue-card-img">
+                                        {% else %}
+                                            <div class="venue-card-img d-flex align-items-center justify-content-center bg-secondary">
+                                                <i class="fas fa-building fa-3x text-white"></i>
+                                            </div>
+                                        {% endif %}
+                                    {% endwith %}
+                                    <div class="venue-card-tag">Popular</div>
+                                </div>
+                                <div class="venue-card-content">
+                                    <h3 class="venue-card-title">{{ venue.name }}</h3>
+                                    <p class="venue-card-subtitle">
+                                        <i class="fas fa-map-marker-alt me-1"></i>{{ venue.city }}
+                                    </p>
+                                    <p class="venue-bookings-count">
+                                        <i class="fas fa-calendar-check me-1"></i>{{ venue.booking_count }} bookings
+                                    </p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="col-12 text-center py-5">
+                    <p class="lead text-muted">No popular venues available yet.</p>
+                </div>
+            {% endif %}
         </div>
     </div>
 </div>
 
 {% if user.is_authenticated %}
-<div class="row mb-5">
-    <div class="col-md-12 text-center mb-4">
-        <h2>Quick Actions</h2>
-    </div>
-    
-    <div class="col-md-4 mb-4">
-        <div class="card h-100 text-center">
-            <div class="card-body">
-                <div class="display-4 text-primary mb-3">
-                    <i class="fas fa-search"></i>
-                </div>
-                <h3 class="card-title">Find Venues</h3>
-                <a href="{% url 'venue_list' %}" class="btn btn-primary">Search Now</a>
-            </div>
+<div class="venue-card-container">
+    <div class="container">
+        <div class="venue-section-header">
+            <h2 class="venue-section-title">Quick Actions</h2>
         </div>
-    </div>
-    
-    <div class="col-md-4 mb-4">
-        <div class="card h-100 text-center">
-            <div class="card-body">
-                <div class="display-4 text-primary mb-3">
-                    <i class="fas fa-history"></i>
+        
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 text-center">
+                    <div class="card-body">
+                        <div class="display-4 text-primary mb-3">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <h3 class="card-title">Find Venues</h3>
+                        <a href="{% url 'venue_list' %}" class="btn btn-primary">Search Now</a>
+                    </div>
                 </div>
-                <h3 class="card-title">Booking History</h3>
-                <a href="{% url 'booking_history' %}" class="btn btn-primary">View History</a>
             </div>
-        </div>
-    </div>
-    
-    <div class="col-md-4 mb-4">
-        <div class="card h-100 text-center">
-            <div class="card-body">
-                <div class="display-4 text-primary mb-3">
-                    <i class="fas fa-user-circle"></i>
+            
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 text-center">
+                    <div class="card-body">
+                        <div class="display-4 text-primary mb-3">
+                            <i class="fas fa-history"></i>
+                        </div>
+                        <h3 class="card-title">Booking History</h3>
+                        <a href="{% url 'booking_history' %}" class="btn btn-primary">View History</a>
+                    </div>
                 </div>
-                <h3 class="card-title">My Profile</h3>
-                <a href="{% url 'profile' %}" class="btn btn-primary">View Profile</a>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 text-center">
+                    <div class="card-body">
+                        <div class="display-4 text-primary mb-3">
+                            <i class="fas fa-user-circle"></i>
+                        </div>
+                        <h3 class="card-title">My Profile</h3>
+                        <a href="{% url 'profile' %}" class="btn btn-primary">View Profile</a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 {% else %}
-<div class="row mb-5">
-    <div class="col-md-12">
+<div class="venue-card-container">
+    <div class="container">
         <div class="card">
             <div class="card-body text-center">
                 <h3 class="card-title">Ready to Get Started?</h3>

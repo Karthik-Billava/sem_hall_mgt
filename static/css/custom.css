@@ -306,4 +306,120 @@
     .hero-text {
         display: none;
     }
+}
+
+.venue-card-container {
+    margin-top: 3rem;
+    margin-bottom: 3rem;
+}
+
+.venue-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.venue-section-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 0;
+}
+
+.venue-section-link {
+    color: #777;
+    font-weight: 500;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.venue-section-link:hover {
+    color: #0d6efd;
+    text-decoration: underline;
+}
+
+.venue-card {
+    background-color: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    height: 100%;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.venue-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+}
+
+.venue-card-img-container {
+    position: relative;
+    height: 200px;
+    overflow: hidden;
+}
+
+.venue-card-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.venue-card:hover .venue-card-img {
+    transform: scale(1.05);
+}
+
+.venue-card-tag {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background-color: rgba(13, 110, 253, 0.9);
+    color: white;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    z-index: 1;
+}
+
+.venue-card-content {
+    padding: 1rem;
+}
+
+.venue-card-title {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    font-size: 1.1rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.venue-card-subtitle {
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.venue-bookings-count {
+    font-size: 0.8rem;
+    color: #777;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .venue-card-img-container {
+        height: 180px;
+    }
+    
+    .venue-section-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .venue-section-title {
+        margin-bottom: 0.5rem;
+    }
 } 
