@@ -39,7 +39,6 @@ A comprehensive web application for managing seminar halls and event spaces, bui
 - **Frontend**: Bootstrap 5, HTML, CSS, JavaScript
 - **Database**: SQLite (default), can be configured for PostgreSQL
 - **Authentication**: Django AllAuth
-- **Real-time Communication**: Django Channels
 - **Notifications**: Django Notifications
 
 ## Installation
@@ -104,10 +103,6 @@ A comprehensive web application for managing seminar halls and event spaces, bui
 - `templates/`: HTML templates
 - `static/`: Static files (CSS, JavaScript, images)
 - `media/`: User-uploaded files
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## Acknowledgements
 
