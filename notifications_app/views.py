@@ -53,21 +53,3 @@ def delete_notification(request, notification_id):
     messages.success(request, 'Notification deleted successfully.')
     return redirect('notification_list')
 
-@login_required
-def notification_settings(request):
-    """View for managing notification settings"""
-    try:
-        settings = request.user.notification_settings
-    except NotificationSetting.DoesNotExist:
-        settings = NotificationSetting.objects.create(user=request.user)
-    
-    if request.method == 'POST':
-        form = NotificationSettingForm(request.POST, instance=settings)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Notification settings updated successfully.')
-            return redirect('notification_settings')
-    else:
-        form = NotificationSettingForm(instance=settings)
-    
-    return render(request, 'notifications/notification_settings.html', {'form': form}) 
