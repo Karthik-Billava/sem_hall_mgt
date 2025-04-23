@@ -46,5 +46,17 @@ class ReviewForm(forms.ModelForm):
         model = Review
         fields = ('rating', 'comment')
         widgets = {
-            'comment': forms.Textarea(attrs={'rows': 4, 'placeholder': 'Share your experience with this venue...'}),
+            'rating': forms.RadioSelect(),
+            'comment': forms.Textarea(attrs={
+                'rows': 4, 
+                'placeholder': 'Share your experience with this venue...',
+                'class': 'form-control'
+            }),
+        }
+        labels = {
+            'rating': 'How would you rate this venue?',
+            'comment': 'Your Review'
+        }
+        help_texts = {
+            'rating': 'Select a rating from 1 to 5 stars',
         } 

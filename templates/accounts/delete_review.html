@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block title %}Delete Review{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">Delete Review</h5>
+                </div>
+                <div class="card-body">
+                    <p>Are you sure you want to delete your review for <strong>{{ review.venue.name }}</strong>?</p>
+                    
+                    <div class="card bg-light mb-4">
+                        <div class="card-body">
+                            <div class="mb-2">
+                                <strong>Rating:</strong>
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= review.rating %}
+                                        <i class="fas fa-star text-warning"></i>
+                                    {% else %}
+                                        <i class="far fa-star text-warning"></i>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            <div class="mb-2">
+                                <strong>Comment:</strong>
+                                <p>{{ review.comment }}</p>
+                            </div>
+                            <div>
+                                <small class="text-muted">Posted on {{ review.created_at|date:"F d, Y" }}</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ request.META.HTTP_REFERER|default:'/' }}" class="btn btn-secondary">
+                                <i class="bi bi-x-circle"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="bi bi-trash"></i> Confirm Delete
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
