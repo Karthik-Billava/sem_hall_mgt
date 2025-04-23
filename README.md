@@ -105,10 +105,6 @@ A comprehensive web application for managing seminar halls and event spaces, bui
 - `static/`: Static files (CSS, JavaScript, images)
 - `media/`: User-uploaded files
 
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
 ## Acknowledgements
 
 - Django
