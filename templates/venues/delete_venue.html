@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Delete Venue{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card shadow">
+        <div class="card-header bg-danger text-white">
+          <h2 class="mb-0">Delete Venue</h2>
+        </div>
+        <div class="card-body">
+          <h4 class="mb-4">Are you sure you want to delete "{{ venue.name }}"?</h4>
+          
+          <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <strong>Warning:</strong> This action will make the venue inactive and hide it from search results. 
+            All existing bookings will be preserved, but no new bookings can be made.
+          </div>
+          
+          <div class="row mt-4">
+            <div class="col-md-6">
+              <h5>Venue Details:</h5>
+              <ul class="list-group mb-4">
+                <li class="list-group-item"><strong>Location:</strong> {{ venue.city }}, {{ venue.state }}</li>
+                <li class="list-group-item"><strong>Capacity:</strong> {{ venue.capacity }} people</li>
+                <li class="list-group-item"><strong>Price:</strong> ₹{{ venue.hourly_rate }} per hour</li>
+              </ul>
+            </div>
+            <div class="col-md-6">
+              {% with primary_image=venue.images.filter.first %}
+                {% if primary_image %}
+                  <img src="{{ primary_image.image.url }}" alt="{{ venue.name }}" class="img-fluid rounded">
+                {% else %}
+                  <div class="bg-light d-flex align-items-center justify-content-center rounded" style="height: 150px;">
+                    <span class="text-muted">No image available</span>
+                  </div>
+                {% endif %}
+              {% endwith %}
+            </div>
+          </div>
+          
+          <form method="post" class="mt-4">
+            {% csrf_token %}
+            <div class="d-flex justify-content-between">
+              <a href="{% url 'manage_venues' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Cancel
+              </a>
+              <button type="submit" class="btn btn-danger">
+                <i class="fas fa-trash me-2"></i>Delete Venue
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} 

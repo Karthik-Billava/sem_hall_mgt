@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Make Payment - {{ booking.event_name }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row">
+    <div class="col-lg-8 mx-auto">
+      <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+          <h2 class="h4 mb-0">Payment for {{ booking.event_name }}</h2>
+        </div>
+        <div class="card-body">
+          <div class="mb-4">
+            <h4 class="h5 mb-3">Booking Details</h4>
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <p class="mb-1"><strong>Venue:</strong> {{ booking.venue.name }}</p>
+                <p class="mb-1"><strong>Date:</strong> {{ booking.date|date:"F d, Y" }}</p>
+                <p class="mb-1"><strong>Time:</strong> {{ booking.start_time|time:"g:i A" }} - {{ booking.end_time|time:"g:i A" }}</p>
+                <p class="mb-0"><strong>Attendees:</strong> {{ booking.attendees }}</p>
+              </div>
+              <div class="col-md-6">
+                <p class="mb-1"><strong>Booking ID:</strong> {{ booking.booking_id }}</p>
+                <p class="mb-1"><strong>Status:</strong> {{ booking.get_status_display }}</p>
+                <p class="mb-0"><strong>Total Cost:</strong> <span class="text-primary fw-bold">₹{{ booking.total_cost }}</span></p>
+              </div>
+            </div>
+            <hr>
+          </div>
+
+          <form method="post" novalidate>
+            {% csrf_token %}
+            
+            {% if form.non_field_errors %}
+              <div class="alert alert-danger" role="alert">
+                {% for error in form.non_field_errors %}
+                  {{ error }}
+                {% endfor %}
+              </div>
+            {% endif %}
+            
+            <div class="mb-4">
+              <label for="{{ form.payment_method.id_for_label }}" class="form-label">Payment Method</label>
+              {{ form.payment_method }}
+              {% if form.payment_method.errors %}
+                <div class="invalid-feedback d-block">
+                  {% for error in form.payment_method.errors %}
+                    {{ error }}
+                  {% endfor %}
+                </div>
+              {% endif %}
+            </div>
+            
+            <div id="card-details" class="mb-4 d-none">
+              <h4 class="h5 mb-3">Card Details</h4>
+              
+              <div class="mb-3">
+                <label for="{{ form.card_number.id_for_label }}" class="form-label">Card Number</label>
+                {{ form.card_number }}
+                {% if form.card_number.errors %}
+                  <div class="invalid-feedback d-block">
+                    {% for error in form.card_number.errors %}
+                      {{ error }}
+                    {% endfor %}
+                  </div>
+                {% endif %}
+              </div>
+              
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label for="{{ form.card_expiry.id_for_label }}" class="form-label">Expiry Date</label>
+                    {{ form.card_expiry }}
+                    {% if form.card_expiry.errors %}
+                      <div class="invalid-feedback d-block">
+                        {% for error in form.card_expiry.errors %}
+                          {{ error }}
+                        {% endfor %}
+                      </div>
+                    {% endif %}
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label for="{{ form.card_cvv.id_for_label }}" class="form-label">CVV</label>
+                    {{ form.card_cvv }}
+                    {% if form.card_cvv.errors %}
+                      <div class="invalid-feedback d-block">
+                        {% for error in form.card_cvv.errors %}
+                          {{ error }}
+                        {% endfor %}
+                      </div>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="d-grid gap-2">
+              <button type="submit" class="btn btn-success btn-lg">
+                <i class="fas fa-credit-card me-2"></i>Pay ₹{{ booking.total_cost }}
+              </button>
+              <a href="{% url 'booking_detail' booking_id=booking.id %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Booking
+              </a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Add Bootstrap classes to form fields
+    const inputs = document.querySelectorAll('input, select, textarea');
+    inputs.forEach(input => {
+      if (input.type !== 'checkbox' && input.type !== 'radio') {
+        input.classList.add('form-control');
+      }
+    });
+    
+    // Show/hide card details based on payment method selection
+    const paymentMethod = document.getElementById('{{ form.payment_method.id_for_label }}');
+    const cardDetails = document.getElementById('card-details');
+    
+    if (paymentMethod && cardDetails) {
+      paymentMethod.addEventListener('change', function() {
+        if (this.value === 'credit_card' || this.value === 'debit_card') {
+          cardDetails.classList.remove('d-none');
+        } else {
+          cardDetails.classList.add('d-none');
+        }
+      });
+      
+      // Initial check
+      if (paymentMethod.value === 'credit_card' || paymentMethod.value === 'debit_card') {
+        cardDetails.classList.remove('d-none');
+      }
+    }
+  });
+</script>
+{% endblock %} 

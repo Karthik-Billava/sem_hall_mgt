@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Booking History{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row">
+    <div class="col-md-12">
+      <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+          <h2 class="mb-0">Your Booking History</h2>
+        </div>
+        <div class="card-body">
+          {% if bookings %}
+            <div class="table-responsive">
+              <table class="table table-striped">
+                <thead>
+                  <tr>
+                    <th>Venue</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Status</th>
+                    <th>Total Price</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for booking in bookings %}
+                  <tr>
+                    <td>
+                      <a href="{% url 'venue_detail' venue_id=booking.venue.id %}">{{ booking.venue.name }}</a>
+                    </td>
+                    <td>{{ booking.date|date:"F d, Y" }}</td>
+                    <td>{{ booking.start_time|time:"g:i A" }} - {{ booking.end_time|time:"g:i A" }}</td>
+                    <td>
+                      <span class="badge {% if booking.status == 'confirmed' %}bg-success{% elif booking.status == 'pending' %}bg-warning{% elif booking.status == 'cancelled' %}bg-danger{% else %}bg-secondary{% endif %}">
+                        {{ booking.get_status_display }}
+                      </span>
+                    </td>
+                    <td>₹{{ booking.total_price }}</td>
+                    <td>
+                      {% if booking.status == 'pending' or booking.status == 'confirmed' %}
+                        <a href="{% url 'cancel_booking' booking_id=booking.id %}" class="btn btn-sm btn-danger">Cancel</a>
+                      {% endif %}
+                      <a href="{% url 'booking_detail' booking_id=booking.id %}" class="btn btn-sm btn-primary">Details</a>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% else %}
+            <div class="alert alert-info">
+              <p>You haven't made any bookings yet.</p>
+              <a href="{% url 'venue_list' %}" class="btn btn-primary mt-3">Browse Venues</a>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} 

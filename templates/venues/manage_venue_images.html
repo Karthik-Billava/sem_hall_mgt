@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}Manage Venue Images{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row">
+    <div class="col-md-12 mb-4">
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="{% url 'manage_venues' %}">Manage Venues</a></li>
+          <li class="breadcrumb-item active">Manage Images for {{ venue.name }}</li>
+        </ol>
+      </nav>
+      <h1>Manage Images for {{ venue.name }}</h1>
+    </div>
+  </div>
+  
+  <div class="row">
+    <div class="col-md-8">
+      <div class="card shadow mb-4">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+          <h4 class="mb-0">Current Images</h4>
+          <span class="badge bg-light text-dark">{{ images.count }} image(s)</span>
+        </div>
+        <div class="card-body">
+          {% if images %}
+            <div class="row">
+              {% for image in images %}
+                <div class="col-md-6 mb-4">
+                  <div class="card h-100">
+                    <img src="{{ image.image.url }}" class="card-img-top" alt="Venue Image" style="height: 200px; object-fit: cover;">
+                    <div class="card-body">
+                      <div class="mb-2">
+                        {% if image.is_primary %}
+                          <span class="badge bg-success me-1">Primary</span>
+                        {% endif %}
+                        {% if image.is_cover %}
+                          <span class="badge bg-info me-1">Cover</span>
+                        {% endif %}
+                      </div>
+                      
+                      {% if image.caption %}
+                        <p class="card-text small">{{ image.caption }}</p>
+                      {% endif %}
+                      
+                      <p class="card-text text-muted small">Uploaded: {{ image.uploaded_at|date:"M d, Y" }}</p>
+                      
+                      <div class="d-flex flex-wrap justify-content-between mt-2">
+                        <div class="btn-group mb-2">
+                          {% if not image.is_primary %}
+                            <form method="post" action="{% url 'set_primary_image' image_id=image.id %}">
+                              {% csrf_token %}
+                              <button type="submit" class="btn btn-sm btn-outline-success">Set as Primary</button>
+                            </form>
+                          {% else %}
+                            <button class="btn btn-sm btn-outline-success" disabled>Primary</button>
+                          {% endif %}
+                          
+                          {% if not image.is_cover %}
+                            <form method="post" action="{% url 'set_cover_image' image_id=image.id %}">
+                              {% csrf_token %}
+                              <button type="submit" class="btn btn-sm btn-outline-info">Set as Cover</button>
+                            </form>
+                          {% else %}
+                            <button class="btn btn-sm btn-outline-info" disabled>Cover</button>
+                          {% endif %}
+                        </div>
+                        
+                        <a href="{% url 'delete_venue_image' image_id=image.id %}" class="btn btn-sm btn-outline-danger">
+                          <i class="fas fa-trash me-1"></i>Delete
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="alert alert-info">
+              <p>No images have been uploaded for this venue yet. Add images to make your venue more attractive to potential customers.</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-4">
+      <div class="card shadow">
+        <div class="card-header bg-success text-white">
+          <h4 class="mb-0">Upload New Image</h4>
+        </div>
+        <div class="card-body">
+          <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form|crispy }}
+            <div class="d-grid gap-2 mt-3">
+              <button type="submit" class="btn btn-success">
+                <i class="fas fa-upload me-2"></i>Upload Image
+              </button>
+              <a href="{% url 'manage_venues' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Venues
+              </a>
+            </div>
+          </form>
+        </div>
+      </div>
+      
+      <div class="card shadow mt-4">
+        <div class="card-header bg-info text-white">
+          <h4 class="mb-0">Image Types Guide</h4>
+        </div>
+        <div class="card-body">
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+              <strong>Primary Image:</strong> Used as thumbnail in venue listings and search results
+            </li>
+            <li class="list-group-item">
+              <strong>Cover Image:</strong> Large banner image at the top of venue detail page
+            </li>
+            <li class="list-group-item">
+              <strong>Caption:</strong> Add a brief description of what's shown in the image
+            </li>
+            <li class="list-group-item">
+              <strong>Recommendations:</strong>
+              <ul>
+                <li>Primary: 600x400 pixels</li>
+                <li>Cover: 1200x400 pixels (wide landscape format)</li>
+                <li>Upload at least 5 images showing different areas of your venue</li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} 

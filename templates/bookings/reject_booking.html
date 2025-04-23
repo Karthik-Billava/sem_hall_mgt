@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Reject Booking - {{ booking.event_name }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row">
+    <div class="col-lg-6 mx-auto">
+      <div class="card shadow">
+        <div class="card-header bg-danger text-white">
+          <h2 class="h4 mb-0">Reject Booking</h2>
+        </div>
+        <div class="card-body">
+          <div class="alert alert-warning" role="alert">
+            <h4 class="alert-heading mb-2">Are you sure?</h4>
+            <p>You are about to reject the booking request for <strong>{{ booking.event_name }}</strong> at <strong>{{ booking.venue.name }}</strong>.</p>
+            <p class="mb-0">The user will be notified that their booking was rejected.</p>
+          </div>
+          
+          <div class="mb-4">
+            <h4 class="h5 mb-3">Booking Details</h4>
+            <ul class="list-group mb-3">
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span>Requested By</span>
+                <span class="fw-bold">{{ booking.user.get_full_name|default:booking.user.username }}</span>
+              </li>
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span>Event</span>
+                <span class="fw-bold">{{ booking.event_name }}</span>
+              </li>
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span>Date</span>
+                <span class="fw-bold">{{ booking.date|date:"F d, Y" }}</span>
+              </li>
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span>Time</span>
+                <span class="fw-bold">{{ booking.start_time|time:"g:i A" }} - {{ booking.end_time|time:"g:i A" }}</span>
+              </li>
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span>Attendees</span>
+                <span class="fw-bold">{{ booking.attendees }}</span>
+              </li>
+            </ul>
+            
+            {% if booking.event_description %}
+              <div class="card mt-3">
+                <div class="card-header">
+                  <h5 class="h6 mb-0">Event Description</h5>
+                </div>
+                <div class="card-body">
+                  <p class="mb-0">{{ booking.event_description }}</p>
+                </div>
+              </div>
+            {% endif %}
+          </div>
+          
+          <form method="post">
+            {% csrf_token %}
+            <div class="d-grid gap-2">
+              <button type="submit" class="btn btn-danger btn-lg">
+                <i class="fas fa-times-circle me-2"></i>Reject Booking
+              </button>
+              <a href="{% url 'booking_detail' booking_id=booking.id %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Booking
+              </a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} 

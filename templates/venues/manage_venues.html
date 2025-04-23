@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Manage Venues{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row">
+    <div class="col-md-12 mb-4">
+      <div class="d-flex justify-content-between align-items-center">
+        <h1>Manage Your Venues</h1>
+        <a href="{% url 'add_venue' %}" class="btn btn-primary">
+          <i class="fas fa-plus"></i> Add New Venue
+        </a>
+      </div>
+    </div>
+  </div>
+  
+  <div class="row">
+    {% if venues %}
+      {% for venue in venues %}
+        <div class="col-lg-4 col-md-6 mb-4">
+          <div class="card h-100 shadow-sm">
+            {% with primary_image=venue.images.filter.first %}
+              {% if primary_image %}
+                <img src="{{ primary_image.image.url }}" class="card-img-top" alt="{{ venue.name }}" style="height: 200px; object-fit: cover;">
+              {% else %}
+                <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                  <span class="text-muted">No Image</span>
+                </div>
+              {% endif %}
+            {% endwith %}
+            
+            <div class="card-body">
+              <h5 class="card-title">{{ venue.name }}</h5>
+              <p class="card-text text-muted">{{ venue.city }}, {{ venue.state }}</p>
+              <p class="card-text">
+                <small>
+                  <span class="badge bg-info">Capacity: {{ venue.capacity }}</span>
+                  <span class="badge bg-success">₹{{ venue.hourly_rate }}/hour</span>
+                </small>
+              </p>
+              <p class="card-text">
+                <small class="text-muted">Status: 
+                  {% if venue.is_active %}
+                    <span class="text-success">Active</span>
+                  {% else %}
+                    <span class="text-danger">Inactive</span>
+                  {% endif %}
+                </small>
+              </p>
+            </div>
+            
+            <div class="card-footer bg-white border-top-0">
+              <div class="btn-group w-100">
+                <a href="" class="btn btn-outline-primary">
+                  <i class="fas fa-edit"></i> Edit
+                </a>
+                <a href="" class="btn btn-outline-info">
+                  <i class="fas fa-images"></i> Images
+                </a>
+                <a href="{% url 'manage_availability' venue_id=venue.id %}" class="btn btn-outline-success">
+                  <i class="fas fa-calendar"></i> Availability
+                </a>
+              </div>
+              <div class="mt-2">
+                <a href="{% url 'venue_bookings' venue_id=venue.id %}" class="btn btn-outline-secondary w-100">
+                  <i class="fas fa-calendar-check"></i> View Bookings
+                </a>
+              </div>
+              <div class="mt-2">
+                <a href="" class="btn btn-outline-danger w-100">
+                  <i class="fas fa-trash"></i> Delete
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="col-12">
+        <div class="alert alert-info">
+          <h4 class="alert-heading">No Venues Yet!</h4>
+          <p>You haven't added any venues to manage. Get started by adding your first venue.</p>
+          <hr>
+          <p class="mb-0">
+            <a href="{% url 'add_venue' %}" class="btn btn-primary">
+              <i class="fas fa-plus"></i> Add New Venue
+            </a>
+          </p>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %} 

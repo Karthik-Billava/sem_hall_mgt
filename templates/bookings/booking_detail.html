@@ -1,0 +1,238 @@
+{% extends 'base.html' %}
+
+{% block title %}Booking Details - Seminar Hall Management System{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+                {% if user == booking.user %}
+                    <li class="breadcrumb-item"><a href="{% url 'booking_history' %}">Booking History</a></li>
+                {% elif user == booking.venue.manager %}
+                    <li class="breadcrumb-item"><a href="{% url 'venue_bookings' venue_id=booking.venue.id %}">Venue Bookings</a></li>
+                {% endif %}
+                <li class="breadcrumb-item active">Booking Details</li>
+            </ol>
+        </nav>
+        
+        <div class="d-flex justify-content-between align-items-center">
+            <h1>Booking Details</h1>
+            <div>
+                <span class="badge bg-{% if booking.status == 'pending' %}warning{% elif booking.status == 'approved' %}success{% elif booking.status == 'rejected' %}danger{% elif booking.status == 'cancelled' %}secondary{% elif booking.status == 'completed' %}info{% endif %} fs-6">
+                    {{ booking.get_status_display }}
+                </span>
+            </div>
+        </div>
+        <hr>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Booking Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-4 fw-bold">Booking ID:</div>
+                    <div class="col-md-8">{{ booking.booking_id }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-4 fw-bold">Event Name:</div>
+                    <div class="col-md-8">{{ booking.event_name }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-4 fw-bold">Event Description:</div>
+                    <div class="col-md-8">{{ booking.event_description }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-4 fw-bold">Date:</div>
+                    <div class="col-md-8">{{ booking.date }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-4 fw-bold">Time:</div>
+                    <div class="col-md-8">{{ booking.start_time }} to {{ booking.end_time }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-4 fw-bold">Attendees:</div>
+                    <div class="col-md-8">{{ booking.attendees }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-4 fw-bold">Total Cost:</div>
+                    <div class="col-md-8">₹{{ booking.total_cost }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-4 fw-bold">Created At:</div>
+                    <div class="col-md-8">{{ booking.created_at }}</div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 fw-bold">Last Updated:</div>
+                    <div class="col-md-8">{{ booking.updated_at }}</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Venue Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-4 fw-bold">Venue Name:</div>
+                    <div class="col-md-8">{{ booking.venue.name }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-4 fw-bold">Address:</div>
+                    <div class="col-md-8">
+                        {{ booking.venue.address }}<br>
+                        {{ booking.venue.city }}, {{ booking.venue.state }} {{ booking.venue.zip_code }}
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-4 fw-bold">Capacity:</div>
+                    <div class="col-md-8">{{ booking.venue.capacity }} people</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-4 fw-bold">Hourly Rate:</div>
+                    <div class="col-md-8">₹{{ booking.venue.hourly_rate }}</div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 fw-bold">Amenities:</div>
+                    <div class="col-md-8">
+                        {% with booking.venue.get_amenities as amenities %}
+                            {% if amenities %}
+                                <div class="d-flex flex-wrap">
+                                    {% for amenity in amenities %}
+                                        <span class="badge bg-light text-dark me-1 mb-1">{{ amenity }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                No amenities listed
+                            {% endif %}
+                        {% endwith %}
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <a href="{% url 'venue_detail' venue_id=booking.venue.id %}" class="btn btn-outline-primary">
+                    <i class="fas fa-building me-2"></i>View Venue
+                </a>
+            </div>
+        </div>
+        
+        {% if payment %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Payment Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-4 fw-bold">Payment Status:</div>
+                    <div class="col-md-8">
+                        <span class="badge bg-{% if payment.status == 'pending' %}warning{% elif payment.status == 'completed' %}success{% elif payment.status == 'failed' %}danger{% elif payment.status == 'refunded' %}info{% endif %}">
+                            {{ payment.get_status_display }}
+                        </span>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-4 fw-bold">Amount:</div>
+                    <div class="col-md-8">₹{{ payment.amount }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-4 fw-bold">Payment Method:</div>
+                    <div class="col-md-8">{{ payment.get_payment_method_display }}</div>
+                </div>
+                {% if payment.transaction_id %}
+                <div class="row mb-3">
+                    <div class="col-md-4 fw-bold">Transaction ID:</div>
+                    <div class="col-md-8">{{ payment.transaction_id }}</div>
+                </div>
+                {% endif %}
+                <div class="row">
+                    <div class="col-md-4 fw-bold">Payment Date:</div>
+                    <div class="col-md-8">{{ payment.payment_date }}</div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Actions</h5>
+            </div>
+            <div class="card-body">
+                {% if user == booking.user %}
+                    {% if booking.status == 'pending' or booking.status == 'approved' %}
+                        {% if not booking.is_past %}
+                            <div class="d-grid gap-2 mb-3">
+                                <a href="" class="btn btn-danger">
+                                    <i class="fas fa-times-circle me-2"></i>Cancel Booking
+                                </a>
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                    
+                    {% if booking.status == 'approved' and not payment %}
+                        <div class="d-grid gap-2 mb-3">
+                            <a href="{% url 'make_payment' booking_id=booking.id %}" class="btn btn-success">
+                                <i class="fas fa-credit-card me-2"></i>Make Payment
+                            </a>
+                        </div>
+                    {% endif %}
+                {% elif user == booking.venue.manager %}
+                    {% if booking.status == 'pending' %}
+                        <div class="d-grid gap-2 mb-3">
+                            <a href="{% url 'approve_booking' booking_id=booking.id %}" class="btn btn-success">
+                                <i class="fas fa-check-circle me-2"></i>Approve Booking
+                            </a>
+                        </div>
+                        <div class="d-grid gap-2 mb-3">
+                            <a href="{% url 'reject_booking' booking_id=booking.id %}" class="btn btn-danger">
+                                <i class="fas fa-times-circle me-2"></i>Reject Booking
+                            </a>
+                        </div>
+                    {% endif %}
+                {% endif %}
+                
+                <div class="d-grid gap-2">
+                    {% if user == booking.user %}
+                        <a href="{% url 'booking_history' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Booking History
+                        </a>
+                    {% elif user == booking.venue.manager %}
+                        <a href="{% url 'venue_bookings' venue_id=booking.venue.id %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Venue Bookings
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Contact Information</h5>
+            </div>
+            <div class="card-body">
+                {% if user == booking.user %}
+                    <h6>Venue Manager</h6>
+                    <p>
+                        <i class="fas fa-user me-2"></i>{{ booking.venue.manager.get_full_name|default:booking.venue.manager.username }}<br>
+                        <i class="fas fa-envelope me-2"></i>{{ booking.venue.manager.email }}
+                    </p>
+                {% elif user == booking.venue.manager %}
+                    <h6>Booking User</h6>
+                    <p>
+                        <i class="fas fa-user me-2"></i>{{ booking.user.get_full_name|default:booking.user.username }}<br>
+                        <i class="fas fa-envelope me-2"></i>{{ booking.user.email }}
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

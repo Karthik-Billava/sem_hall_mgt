@@ -1,0 +1,235 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Find Venues - Seminar Hall Management System{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h1>Find Venues</h1>
+        <p class="lead">Search for the perfect venue for your event</p>
+        <hr>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Search and Filter Sidebar -->
+    <div class="col-md-3 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Search & Filter</h5>
+            </div>
+            <div class="card-body">
+                <form method="get" action="{% url 'venue_list' %}">
+                    <div class="mb-3">
+                        <label for="search" class="form-label">Search</label>
+                        <input type="text" class="form-control" id="search" name="search" placeholder="Venue name, city..." value="{{ search_query }}">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="min_capacity" class="form-label">Minimum Capacity</label>
+                        <input type="number" class="form-control" id="min_capacity" name="min_capacity" min="1" value="{{ min_capacity }}">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="max_price" class="form-label">Maximum Price (per hour)</label>
+                        <input type="number" class="form-control" id="max_price" name="max_price" min="0" step="0.01" value="{{ max_price }}">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Amenities</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="has_projector" name="has_projector" {% if request.GET.has_projector %}checked{% endif %}>
+                            <label class="form-check-label" for="has_projector">Projector</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="has_sound_system" name="has_sound_system" {% if request.GET.has_sound_system %}checked{% endif %}>
+                            <label class="form-check-label" for="has_sound_system">Sound System</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="has_wifi" name="has_wifi" {% if request.GET.has_wifi %}checked{% endif %}>
+                            <label class="form-check-label" for="has_wifi">WiFi</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="has_catering" name="has_catering" {% if request.GET.has_catering %}checked{% endif %}>
+                            <label class="form-check-label" for="has_catering">Catering</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="has_parking" name="has_parking" {% if request.GET.has_parking %}checked{% endif %}>
+                            <label class="form-check-label" for="has_parking">Parking</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="has_air_conditioning" name="has_air_conditioning" {% if request.GET.has_air_conditioning %}checked{% endif %}>
+                            <label class="form-check-label" for="has_air_conditioning">Air Conditioning</label>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search me-2"></i>Search
+                        </button>
+                        <a href="{% url 'venue_list' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-redo me-2"></i>Reset Filters
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Venue List -->
+    <div class="col-md-9">
+        {% if page_obj %}
+            <div class="row">
+                {% for venue in page_obj %}
+                    <div class="col-md-4 mb-4">
+                        <div class="card venue-card h-100">
+                            {% with venue.images.all as images %}
+                                {% if images %}
+                                    {% with images|first as first_image %}
+                                        <img src="{{ first_image.image.url }}" class="card-img-top" alt="{{ venue.name }}">
+                                    {% endwith %}
+                                {% else %}
+                                    <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                                        <i class="fas fa-building fa-4x text-secondary"></i>
+                                    </div>
+                                {% endif %}
+                            {% endwith %}
+                            
+                            <div class="card-body">
+                                <h5 class="card-title">{{ venue.name }}</h5>
+                                <p class="card-text text-muted">
+                                    <i class="fas fa-map-marker-alt me-1"></i>{{ venue.city }}, {{ venue.state }}
+                                </p>
+                                <p class="card-text">
+                                    <i class="fas fa-users me-1"></i>Capacity: {{ venue.capacity }} people
+                                </p>
+                                <p class="card-text">
+                                    <i class="fas fa-dollar-sign me-1"></i>{{ venue.hourly_rate }} per hour
+                                </p>
+                                
+                                <div class="mb-2">
+                                    {% with venue.get_average_rating as avg_rating %}
+                                        <div class="rating-stars">
+                                            {% for i in "12345" %}
+                                                {% if forloop.counter <= avg_rating|floatformat:"0" %}
+                                                    <i class="fas fa-star"></i>
+                                                {% elif forloop.counter <= avg_rating|add:"0.5"|floatformat:"0" %}
+                                                    <i class="fas fa-star-half-alt"></i>
+                                                {% else %}
+                                                    <i class="far fa-star"></i>
+                                                {% endif %}
+                                            {% endfor %}
+                                            <span class="ms-1 text-muted">({{ venue.reviews.count }})</span>
+                                        </div>
+                                    {% endwith %}
+                                </div>
+                                
+                                <div class="d-grid gap-2">
+                                    <a href="{% url 'venue_detail' venue_id=venue.id %}" class="btn btn-primary">
+                                        <i class="fas fa-info-circle me-1"></i>View Details
+                                    </a>
+                                </div>
+                            </div>
+                            
+                            <div class="card-footer bg-white">
+                                <small class="text-muted">
+                                    {% with venue.get_amenities as amenities %}
+                                        {% if amenities %}
+                                            <div class="d-flex flex-wrap">
+                                                {% for amenity in amenities %}
+                                                    <span class="badge bg-light text-dark me-1 mb-1">{{ amenity }}</span>
+                                                {% endfor %}
+                                            </div>
+                                        {% else %}
+                                            No amenities listed
+                                        {% endif %}
+                                    {% endwith %}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Pagination -->
+            {% if page_obj.paginator.num_pages > 1 %}
+                <nav aria-label="Page navigation">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="First">
+                                    <span aria-hidden="true">&laquo;&laquo;</span>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#" aria-label="First">
+                                    <span aria-hidden="true">&laquo;&laquo;</span>
+                                </a>
+                            </li>
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#" aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                        {% endif %}
+                        
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                                <li class="page-item active"><a class="page-link" href="#">{{ num }}</a></li>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Last">
+                                    <span aria-hidden="true">&raquo;&raquo;</span>
+                                </a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#" aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#" aria-label="Last">
+                                    <span aria-hidden="true">&raquo;&raquo;</span>
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% endif %}
+        {% else %}
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <div class="display-1 text-muted mb-3">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <h3>No venues found</h3>
+                    <p class="text-muted">Try adjusting your search criteria or filters.</p>
+                    <a href="{% url 'venue_list' %}" class="btn btn-primary">
+                        <i class="fas fa-redo me-2"></i>Reset Filters
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 

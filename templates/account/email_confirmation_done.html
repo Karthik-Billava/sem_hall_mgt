@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block title %}{% trans "Email Confirmed" %}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <div class="card shadow">
+      <div class="card-header bg-primary text-white">
+        <h3 class="mb-0">{% trans "Email Verified Successfully" %}</h3>
+      </div>
+      <div class="card-body">
+        <div class="alert alert-success" role="alert">
+          <i class="fas fa-check-circle me-2"></i>
+          {% blocktrans %}Your email address has been successfully confirmed.{% endblocktrans %}
+        </div>
+        
+        <p>{% blocktrans %}Now you can login to your account using your credentials.{% endblocktrans %}</p>
+        
+        <div class="d-grid gap-2 mt-4">
+          <a href="{% url 'account_login' %}" class="btn btn-primary">{% trans "Sign In" %}</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} 

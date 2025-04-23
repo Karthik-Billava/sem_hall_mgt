@@ -1,0 +1,229 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ venue.name }} - Venue Details{% endblock %}
+
+{% block content %}
+<!-- Cover Image Section -->
+{% with cover_image=venue.get_cover_image %}
+{% if cover_image %}
+<div class="venue-cover-wrapper position-relative mb-5">
+  <div class="venue-cover-image" style="height: 350px; overflow: hidden; background-color: #f8f9fa;">
+    <img src="{{ cover_image.image.url }}" alt="{{ venue.name }}" style="width: 100%; height: 100%; object-fit: cover;">
+  </div>
+  <div class="venue-cover-overlay position-absolute bottom-0 start-0 w-100 bg-dark bg-opacity-50 text-white p-4">
+    <div class="container">
+      <h1 class="display-4 fw-bold">{{ venue.name }}</h1>
+      <p class="lead mb-0">
+        <i class="fas fa-map-marker-alt me-2"></i>{{ venue.city }}, {{ venue.state }}
+      </p>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endwith %}
+
+<div class="container py-4">
+  <div class="row">
+    <!-- Venue Details Column -->
+    <div class="col-lg-8">
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">
+          <h2 class="h4 mb-0">About This Venue</h2>
+        </div>
+        <div class="card-body">
+          <p class="lead">{{ venue.description }}</p>
+          
+          <h3 class="h5 mt-4 mb-3">Location</h3>
+          <address>
+            {{ venue.address }}<br>
+            {{ venue.city }}, {{ venue.state }} {{ venue.zip_code }}
+          </address>
+          
+          <h3 class="h5 mt-4 mb-3">Amenities</h3>
+          <div class="row mb-4">
+            {% for amenity in venue.get_amenities %}
+              <div class="col-md-4 mb-2">
+                <div class="d-flex align-items-center">
+                  <i class="fas fa-check-circle text-success me-2"></i>
+                  <span>{{ amenity }}</span>
+                </div>
+              </div>
+            {% empty %}
+              <div class="col-12">
+                <p class="text-muted">No amenities listed for this venue.</p>
+              </div>
+            {% endfor %}
+          </div>
+          
+          <h3 class="h5 mt-4 mb-3">Images</h3>
+          <div class="venue-gallery mb-4">
+            <div class="row">
+              {% for image in venue.images.all %}
+                <div class="col-md-4 mb-3">
+                  <a href="{{ image.image.url }}" target="_blank" class="d-block">
+                    <img src="{{ image.image.url }}" alt="{{ venue.name }}" class="img-fluid rounded" style="height: 150px; width: 100%; object-fit: cover;">
+                  </a>
+                  {% if image.caption %}
+                    <p class="text-center small text-muted mt-1">{{ image.caption }}</p>
+                  {% endif %}
+                </div>
+              {% empty %}
+                <div class="col-12">
+                  <p class="text-muted">No images available for this venue.</p>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+          
+          <h3 class="h5 mt-4 mb-3">Customer Reviews</h3>
+          <div class="reviews mb-4">
+            {% if reviews %}
+              <div class="mb-3">
+                <span class="h4 me-2">{{ avg_rating|floatformat:1 }}</span>
+                <div class="d-inline-block">
+                  {% for i in "12345" %}
+                    {% if forloop.counter <= avg_rating|floatformat:"0" %}
+                      <i class="fas fa-star text-warning"></i>
+                    {% elif forloop.counter <= avg_rating|add:"0.5"|floatformat:"0" %}
+                      <i class="fas fa-star-half-alt text-warning"></i>
+                    {% else %}
+                      <i class="far fa-star text-warning"></i>
+                    {% endif %}
+                  {% endfor %}
+                </div>
+                <span class="text-muted ms-2">({{ reviews.count }} reviews)</span>
+              </div>
+              
+              {% for review in reviews %}
+                <div class="card mb-3">
+                  <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                      <h5 class="mb-0">{{ review.user.get_full_name|default:review.user.username }}</h5>
+                      <div>
+                        {% for i in "12345" %}
+                          {% if forloop.counter <= review.rating %}
+                            <i class="fas fa-star text-warning"></i>
+                          {% else %}
+                            <i class="far fa-star text-warning"></i>
+                          {% endif %}
+                        {% endfor %}
+                      </div>
+                    </div>
+                    <p class="card-text">{{ review.comment }}</p>
+                    <p class="card-text"><small class="text-muted">{{ review.created_at|date:"F d, Y" }}</small></p>
+                  </div>
+                </div>
+              {% endfor %}
+            {% else %}
+              <p class="text-muted">No reviews yet for this venue.</p>
+            {% endif %}
+            
+            {% if user.is_authenticated %}
+              <div class="mt-3">
+                <a href="{% url 'add_review' venue_id=venue.id %}" class="btn btn-outline-primary">
+                  <i class="fas fa-comment me-2"></i>Leave a Review
+                </a>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Booking and Info Sidebar -->
+    <div class="col-lg-4">
+      <div class="card shadow-sm mb-4 sticky-top" style="top: 20px; z-index: 1;">
+        <div class="card-header bg-success text-white">
+          <h3 class="h4 mb-0">Book This Venue</h3>
+        </div>
+        <div class="card-body">
+          <div class="d-flex align-items-center justify-content-between mb-3">
+            <span class="h5 mb-0">Price:</span>
+            <span class="h5 mb-0">₹{{ venue.hourly_rate }}/hour</span>
+          </div>
+          <hr>
+          <div class="d-flex align-items-center justify-content-between mb-3">
+            <span class="h5 mb-0">Capacity:</span>
+            <span class="h5 mb-0">{{ venue.capacity }} people</span>
+          </div>
+          <hr>
+          
+          <div class="mb-4">
+            <h4 class="h5 mb-3">Upcoming Availability</h4>
+            {% if availabilities %}
+              <div class="list-group">
+                {% for availability in availabilities|slice:":5" %}
+                  <div class="list-group-item">
+                    <div class="d-flex justify-content-between align-items-center">
+                      <span>{{ availability.date|date:"M d, Y" }}</span>
+                      <span>{{ availability.start_time|time:"g:i A" }} - {{ availability.end_time|time:"g:i A" }}</span>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+              {% if availabilities|length > 5 %}
+                <div class="text-center mt-2">
+                  <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#moreAvailability">
+                    See More Dates
+                  </button>
+                </div>
+                <div class="collapse mt-2" id="moreAvailability">
+                  <div class="list-group">
+                    {% for availability in availabilities|slice:"5:" %}
+                      <div class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                          <span>{{ availability.date|date:"M d, Y" }}</span>
+                          <span>{{ availability.start_time|time:"g:i A" }} - {{ availability.end_time|time:"g:i A" }}</span>
+                        </div>
+                      </div>
+                    {% endfor %}
+                  </div>
+                </div>
+              {% endif %}
+            {% else %}
+              <p class="text-muted">No availability information for this venue.</p>
+            {% endif %}
+          </div>
+          
+          {% if user.is_authenticated %}
+            <div class="d-grid gap-2">
+              <a href="{% url 'book_venue' venue_id=venue.id %}" class="btn btn-success btn-lg">
+                <i class="fas fa-calendar-check me-2"></i>Book Now
+              </a>
+              <a href="#" class="btn btn-outline-primary">
+                <i class="fas fa-question-circle me-2"></i>Ask a Question
+              </a>
+            </div>
+          {% else %}
+            <div class="alert alert-info mb-3">
+              <i class="fas fa-info-circle me-2"></i>
+              <a href="{% url 'account_login' %}?next={{ request.path }}" class="alert-link">Log in</a> or 
+              <a href="{% url 'account_signup' %}" class="alert-link">Sign up</a> to book this venue.
+            </div>
+          {% endif %}
+        </div>
+      </div>
+      
+      <!-- Venue Manager Info -->
+      <div class="card shadow-sm">
+        <div class="card-header bg-secondary text-white">
+          <h3 class="h5 mb-0">Venue Manager</h3>
+        </div>
+        <div class="card-body">
+          <h4 class="h6">{{ venue.manager.get_full_name|default:venue.manager.username }}</h4>
+          <p class="text-muted small">
+            <i class="fas fa-calendar-alt me-2"></i>Member since {{ venue.manager.date_joined|date:"F Y" }}
+          </p>
+          
+          {% if user.is_authenticated and user != venue.manager %}
+            <a href="#" class="btn btn-sm btn-outline-secondary btn-block">
+              <i class="fas fa-envelope me-2"></i>Contact Manager
+            </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} 

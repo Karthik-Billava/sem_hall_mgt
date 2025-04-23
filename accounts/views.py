@@ -1,42 +1,87 @@
-from django.shortcuts import render,redirect
-from django.http import HttpResponse
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.contrib.auth.models import User
+from .models import UserProfile, Review
+from .forms import UserProfileForm, ReviewForm
+from bookings.models import Booking
 
-
-from .models import UserProfile
-from .forms import UserProfileForm
-
-# Create your views here.
 @login_required
 def profile_view(request):
+    """View for user profile"""
     user = request.user
-    profile, created = UserProfile.objects.get_or_create(
-        user=user,
-        defaults={'user_type': user.user_type}
-    )
-    return render(request, "accounts/profile.html", {
+    profile = user.profile
+    bookings = Booking.objects.filter(user=user).order_by('-created_at')
+    
+    context = {
         'user': user,
         'profile': profile,
-    })
+        'bookings': bookings,
+    }
+    return render(request, 'accounts/profile.html', context)
 
 @login_required
 def edit_profile(request):
+    """View for editing user profile"""
     if request.method == 'POST':
         form = UserProfileForm(request.POST, request.FILES, instance=request.user.profile)
         if form.is_valid():
-            profile = form.save()
-            request.user.first_name = profile.first_name
-            request.user.last_name = profile.last_name
-            request.user.save()
+            form.save()
             messages.success(request, 'Your profile has been updated successfully!')
             return redirect('profile')
     else:
-        profile, created = UserProfile.objects.get_or_create(
-            user=request.user,
-            defaults={'user_type': request.user.user_type}
-        )
-        form = UserProfileForm(instance=profile)
+        form = UserProfileForm(instance=request.user.profile)
     
     return render(request, 'accounts/edit_profile.html', {'form': form})
 
+@login_required
+def booking_history(request):
+    """View for user booking history"""
+    bookings = Booking.objects.filter(user=request.user).order_by('-created_at')
+    return render(request, 'accounts/booking_history.html', {'bookings': bookings})
+
+@login_required
+def add_review(request, venue_id):
+    """View for adding a review"""
+    if request.method == 'POST':
+        form = ReviewForm(request.POST)
+        if form.is_valid():
+            review = form.save(commit=False)
+            review.user = request.user
+            review.venue_id = venue_id
+            review.save()
+            messages.success(request, 'Your review has been added successfully!')
+            return redirect('venue_detail', venue_id=venue_id)
+    else:
+        form = ReviewForm()
+    
+    return render(request, 'accounts/add_review.html', {'form': form})
+
+@login_required
+def edit_review(request, review_id):
+    """View for editing a review"""
+    review = get_object_or_404(Review, id=review_id, user=request.user)
+    
+    if request.method == 'POST':
+        form = ReviewForm(request.POST, instance=review)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Your review has been updated successfully!')
+            return redirect('venue_detail', venue_id=review.venue.id)
+    else:
+        form = ReviewForm(instance=review)
+    
+    return render(request, 'accounts/edit_review.html', {'form': form, 'review': review})
+
+@login_required
+def delete_review(request, review_id):
+    """View for deleting a review"""
+    review = get_object_or_404(Review, id=review_id, user=request.user)
+    venue_id = review.venue.id
+    
+    if request.method == 'POST':
+        review.delete()
+        messages.success(request, 'Your review has been deleted successfully!')
+        return redirect('venue_detail', venue_id=venue_id)
+    
+    return render(request, 'accounts/delete_review.html', {'review': review}) 

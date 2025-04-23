@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block title %}{% trans "Verify Your Email Address" %}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <div class="card shadow">
+      <div class="card-header bg-primary text-white">
+        <h3 class="mb-0">{% trans "Verify Your Email Address" %}</h3>
+      </div>
+      <div class="card-body">
+        <div class="alert alert-info" role="alert">
+          <i class="fas fa-envelope me-2"></i>
+          {% blocktrans %}We have sent an email to you for verification. Follow the link provided to finalize the signup process. If you do not see the verification email in your main inbox, check your spam folder. Please contact us if you do not receive the verification email within a few minutes.{% endblocktrans %}
+        </div>
+        
+        <div class="text-center mt-4">
+          <a href="{% url 'account_login' %}" class="btn btn-outline-primary">{% trans "Return to Login" %}</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} 

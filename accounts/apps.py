@@ -6,7 +6,4 @@ class AccountsConfig(AppConfig):
     name = 'accounts'
     
     def ready(self):
-        try:
-            import accounts.signals  # noqa
-        except ImportError:
-            pass
+        import accounts.signals 

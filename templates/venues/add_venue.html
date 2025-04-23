@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}Add New Venue{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+          <h2 class="mb-0">Add New Venue</h2>
+        </div>
+        <div class="card-body">
+          <form method="post">
+            {% csrf_token %}
+            
+            <div class="row">
+              <div class="col-md-12">
+                {{ form.name|as_crispy_field }}
+              </div>
+            </div>
+            
+            <div class="row">
+              <div class="col-md-12">
+                {{ form.description|as_crispy_field }}
+              </div>
+            </div>
+            
+            <div class="row">
+              <div class="col-md-12">
+                {{ form.address|as_crispy_field }}
+              </div>
+            </div>
+            
+            <div class="row">
+              <div class="col-md-4">
+                {{ form.city|as_crispy_field }}
+              </div>
+              <div class="col-md-4">
+                {{ form.state|as_crispy_field }}
+              </div>
+              <div class="col-md-4">
+                {{ form.zip_code|as_crispy_field }}
+              </div>
+            </div>
+            
+            <div class="row">
+              <div class="col-md-6">
+                {{ form.capacity|as_crispy_field }}
+              </div>
+              <div class="col-md-6">
+                {{ form.hourly_rate|as_crispy_field }}
+              </div>
+            </div>
+            
+            <h4 class="mt-4 mb-3">Amenities</h4>
+            <div class="row">
+              <div class="col-md-6">
+                <div class="form-check mb-3">
+                  {{ form.has_projector }}
+                  <label class="form-check-label" for="{{ form.has_projector.id_for_label }}">
+                    Projector
+                  </label>
+                </div>
+                <div class="form-check mb-3">
+                  {{ form.has_sound_system }}
+                  <label class="form-check-label" for="{{ form.has_sound_system.id_for_label }}">
+                    Sound System
+                  </label>
+                </div>
+                <div class="form-check mb-3">
+                  {{ form.has_wifi }}
+                  <label class="form-check-label" for="{{ form.has_wifi.id_for_label }}">
+                    WiFi
+                  </label>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-check mb-3">
+                  {{ form.has_catering }}
+                  <label class="form-check-label" for="{{ form.has_catering.id_for_label }}">
+                    Catering
+                  </label>
+                </div>
+                <div class="form-check mb-3">
+                  {{ form.has_parking }}
+                  <label class="form-check-label" for="{{ form.has_parking.id_for_label }}">
+                    Parking
+                  </label>
+                </div>
+                <div class="form-check mb-3">
+                  {{ form.has_air_conditioning }}
+                  <label class="form-check-label" for="{{ form.has_air_conditioning.id_for_label }}">
+                    Air Conditioning
+                  </label>
+                </div>
+              </div>
+            </div>
+            
+            <div class="mt-4">
+              <a href="{% url 'manage_venues' %}" class="btn btn-secondary">Cancel</a>
+              <button type="submit" class="btn btn-primary">Save Venue</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} 

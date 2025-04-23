@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+
+{% block title %}Notifications - Seminar Hall Management System{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1>Notifications</h1>
+            <div>
+                {% if notifications.unread %}
+                    <a href="{% url 'mark_all_as_read' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-check-double me-2"></i>Mark All as Read
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+        <hr>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <ul class="nav nav-tabs card-header-tabs" id="notificationTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all" type="button" role="tab" aria-controls="all" aria-selected="true">
+                            All
+                            <span class="badge bg-secondary ms-1">{{ notifications.count }}</span>
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="unread-tab" data-bs-toggle="tab" data-bs-target="#unread" type="button" role="tab" aria-controls="unread" aria-selected="false">
+                            Unread
+                            <span class="badge bg-primary ms-1">{{ notifications.unread.count }}</span>
+                        </button>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body">
+                <div class="tab-content" id="notificationTabsContent">
+                    <div class="tab-pane fade show active" id="all" role="tabpanel" aria-labelledby="all-tab">
+                        {% if notifications %}
+                            <div class="list-group">
+                                {% for notification in notifications %}
+                                    <div class="list-group-item list-group-item-action {% if not notification.unread %}bg-light{% endif %}">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h5 class="mb-1">
+                                                {% if notification.unread %}
+                                                    <span class="badge bg-primary me-2">New</span>
+                                                {% endif %}
+                                                {{ notification.actor }} {{ notification.verb }}
+                                                {% if notification.target %}
+                                                    {{ notification.target }}
+                                                {% endif %}
+                                            </h5>
+                                            <small class="text-muted">{{ notification.timestamp|timesince }} ago</small>
+                                        </div>
+                                        <p class="mb-1">{{ notification.description }}</p>
+                                        <div class="d-flex justify-content-between align-items-center mt-2">
+                                            <div>
+                                                {% if notification.action_object %}
+                                                    {% if notification.action_object_content_type.model == 'booking' %}
+                                                        <a href="{% url 'booking_detail' booking_id=notification.action_object.id %}" class="btn btn-sm btn-outline-primary">
+                                                            <i class="fas fa-eye me-1"></i>View Booking
+                                                        </a>
+                                                    {% elif notification.action_object_content_type.model == 'review' %}
+                                                        <a href="{% url 'venue_detail' venue_id=notification.action_object.venue.id %}" class="btn btn-sm btn-outline-primary">
+                                                            <i class="fas fa-eye me-1"></i>View Review
+                                                        </a>
+                                                    {% endif %}
+                                                {% endif %}
+                                            </div>
+                                            <div>
+                                                {% if notification.unread %}
+                                                    <a href="{% url 'mark_as_read' notification_id=notification.id %}" class="btn btn-sm btn-outline-secondary">
+                                                        <i class="fas fa-check me-1"></i>Mark as Read
+                                                    </a>
+                                                {% endif %}
+                                                <a href="{% url 'delete_notification' notification_id=notification.id %}" class="btn btn-sm btn-outline-danger">
+                                                    <i class="fas fa-trash me-1"></i>Delete
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="text-center py-5">
+                                <div class="display-1 text-muted mb-3">
+                                    <i class="fas fa-bell-slash"></i>
+                                </div>
+                                <h3>No notifications</h3>
+                                <p class="text-muted">You don't have any notifications yet.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="tab-pane fade" id="unread" role="tabpanel" aria-labelledby="unread-tab">
+                        {% if notifications.unread %}
+                            <div class="list-group">
+                                {% for notification in notifications.unread %}
+                                    <div class="list-group-item list-group-item-action">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h5 class="mb-1">
+                                                <span class="badge bg-primary me-2">New</span>
+                                                {{ notification.actor }} {{ notification.verb }}
+                                                {% if notification.target %}
+                                                    {{ notification.target }}
+                                                {% endif %}
+                                            </h5>
+                                            <small class="text-muted">{{ notification.timestamp|timesince }} ago</small>
+                                        </div>
+                                        <p class="mb-1">{{ notification.description }}</p>
+                                        <div class="d-flex justify-content-between align-items-center mt-2">
+                                            <div>
+                                                {% if notification.action_object %}
+                                                    {% if notification.action_object_content_type.model == 'booking' %}
+                                                        <a href="{% url 'booking_detail' booking_id=notification.action_object.id %}" class="btn btn-sm btn-outline-primary">
+                                                            <i class="fas fa-eye me-1"></i>View Booking
+                                                        </a>
+                                                    {% elif notification.action_object_content_type.model == 'review' %}
+                                                        <a href="{% url 'venue_detail' venue_id=notification.action_object.venue.id %}" class="btn btn-sm btn-outline-primary">
+                                                            <i class="fas fa-eye me-1"></i>View Review
+                                                        </a>
+                                                    {% endif %}
+                                                {% endif %}
+                                            </div>
+                                            <div>
+                                                <a href="{% url 'mark_as_read' notification_id=notification.id %}" class="btn btn-sm btn-outline-secondary">
+                                                    <i class="fas fa-check me-1"></i>Mark as Read
+                                                </a>
+                                                <a href="{% url 'delete_notification' notification_id=notification.id %}" class="btn btn-sm btn-outline-danger">
+                                                    <i class="fas fa-trash me-1"></i>Delete
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="text-center py-5">
+                                <div class="display-1 text-muted mb-3">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <h3>No unread notifications</h3>
+                                <p class="text-muted">You're all caught up!</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Enable real-time notifications via WebSocket
+    document.addEventListener('DOMContentLoaded', function() {
+        const notificationSocket = new WebSocket(
+            'ws://' + window.location.host + '/ws/notifications/'
+        );
+        
+        notificationSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            if (data.type === 'notification') {
+                // Show a browser notification
+                if (Notification.permission === 'granted') {
+                    new Notification('New Notification', {
+                        body: data.notification.description,
+                        icon: '/static/img/logo.png'
+                    });
+                }
+                
+                // Refresh the page to show the new notification
+                location.reload();
+            }
+        };
+        
+        notificationSocket.onclose = function(e) {
+            console.error('Notification socket closed unexpectedly');
+        };
+        
+        // Request permission for browser notifications
+        if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
+            Notification.requestPermission();
+        }
+    });
+</script>
+{% endblock %} 
