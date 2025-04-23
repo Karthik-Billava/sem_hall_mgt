@@ -84,61 +84,23 @@ def venue_detail(request, venue_id):
         status__in=['pending', 'approved']
     )
     
-    # If no explicit availability records, generate default ones
+    # Process availability records
     availability_list = []
-    if not availabilities.exists():
-        # Create default availability for the next 7 days (9 AM to 9 PM)
-        for day_offset in range(7):
-            current_date = today + timedelta(days=day_offset)
-            default_start = datetime.strptime('09:00', '%H:%M').time()
-            default_end = datetime.strptime('21:00', '%H:%M').time()
-            
-            # Check for conflicts with bookings
-            day_bookings = [b for b in bookings if b.date == current_date]
-            if not day_bookings:
-                # No bookings for this day, so the whole day is available
-                availability_list.append({
-                    'date': current_date,
-                    'start_time': default_start,
-                    'end_time': default_end
-                })
-            else:
-                # There are bookings, find available times
-                current_time = default_start
-                while current_time < default_end:
-                    next_time = (datetime.combine(current_date, current_time) + timedelta(hours=1)).time()
-                    
-                    is_booked = False
-                    for booking in day_bookings:
-                        if (current_time < booking.end_time and next_time > booking.start_time):
-                            is_booked = True
-                            break
-                    
-                    if not is_booked:
-                        availability_list.append({
-                            'date': current_date,
-                            'start_time': current_time,
-                            'end_time': next_time
-                        })
-                    
-                    current_time = next_time
-    else:
-        # Convert queryset to list for template use
-        for avail in availabilities:
-            # Check if there's a conflicting booking
-            is_booked = False
-            day_bookings = [b for b in bookings if b.date == avail.date]
-            for booking in day_bookings:
-                if (booking.start_time < avail.end_time and booking.end_time > avail.start_time):
-                    is_booked = True
-                    break
-            
-            if not is_booked:
-                availability_list.append({
-                    'date': avail.date,
-                    'start_time': avail.start_time,
-                    'end_time': avail.end_time
-                })
+    for avail in availabilities:
+        # Check if there's a conflicting booking
+        is_booked = False
+        day_bookings = [b for b in bookings if b.date == avail.date]
+        for booking in day_bookings:
+            if (booking.start_time < avail.end_time and booking.end_time > avail.start_time):
+                is_booked = True
+                break
+        
+        if not is_booked:
+            availability_list.append({
+                'date': avail.date,
+                'start_time': avail.start_time,
+                'end_time': avail.end_time
+            })
     
     # Get average rating
     avg_rating = reviews.aggregate(Avg('rating'))['rating__avg']
@@ -287,7 +249,13 @@ def set_cover_image(request, image_id):
 def manage_availability(request, venue_id):
     """View for managing venue availability"""
     venue = get_object_or_404(Venue, id=venue_id, manager=request.user)
-    availabilities = Availability.objects.filter(venue=venue).order_by('date', 'start_time')
+    
+    # Filter out past availabilities to keep the list clean
+    today = datetime.now().date()
+    availabilities = Availability.objects.filter(
+        venue=venue, 
+        date__gte=today
+    ).order_by('date', 'start_time')
     
     if request.method == 'POST':
         form = AvailabilityForm(request.POST)
@@ -298,7 +266,15 @@ def manage_availability(request, venue_id):
             messages.success(request, 'Availability added successfully!')
             return redirect('manage_availability', venue_id=venue.id)
     else:
-        form = AvailabilityForm()
+        # Set default values for the form
+        default_start = datetime.strptime('09:00', '%H:%M').time()
+        default_end = datetime.strptime('17:00', '%H:%M').time()
+        form = AvailabilityForm(initial={
+            'date': today,
+            'start_time': default_start,
+            'end_time': default_end,
+            'is_available': True
+        })
     
     context = {
         'venue': venue,

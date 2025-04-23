@@ -149,6 +149,7 @@
           </div>
           <hr>
           
+          <!-- Availability Section -->
           <div class="mb-4">
             <h4 class="h5 mb-3">Upcoming Availability</h4>
             {% if availabilities %}
@@ -182,7 +183,17 @@
                 </div>
               {% endif %}
             {% else %}
-              <p class="text-muted">No availability information for this venue.</p>
+              <div class="alert alert-info">
+                <p>The venue owner has not set up specific availability times.</p>
+                <p>Please contact the venue manager for booking information or check back later.</p>
+                {% if request.user == venue.manager %}
+                <div class="mt-2">
+                  <a href="{% url 'manage_availability' venue.id %}" class="btn btn-primary btn-sm">
+                    <i class="bi bi-calendar"></i> Set Availability
+                  </a>
+                </div>
+                {% endif %}
+              </div>
             {% endif %}
           </div>
           

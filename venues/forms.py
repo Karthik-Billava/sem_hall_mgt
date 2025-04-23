@@ -1,5 +1,6 @@
 from django import forms
 from .models import Venue, VenueImage, Availability
+from datetime import datetime
 
 class VenueForm(forms.ModelForm):
     """Form for venue creation and editing"""
@@ -36,10 +37,30 @@ class AvailabilityForm(forms.ModelForm):
         model = Availability
         fields = ['date', 'start_time', 'end_time', 'is_available']
         widgets = {
-            'date': forms.DateInput(attrs={'type': 'date'}),
-            'start_time': forms.TimeInput(attrs={'type': 'time'}),
-            'end_time': forms.TimeInput(attrs={'type': 'time'}),
+            'date': forms.DateInput(attrs={
+                'type': 'date',
+                'class': 'form-control',
+                'min': datetime.now().date().strftime('%Y-%m-%d')
+            }),
+            'start_time': forms.TimeInput(attrs={
+                'type': 'time',
+                'class': 'form-control'
+            }),
+            'end_time': forms.TimeInput(attrs={
+                'type': 'time',
+                'class': 'form-control'
+            }),
         }
+    
+    def clean_date(self):
+        """Validate that the date is not in the past"""
+        date = self.cleaned_data.get('date')
+        today = datetime.now().date()
+        
+        if date < today:
+            raise forms.ValidationError("You cannot set availability for past dates.")
+        
+        return date
     
     def clean(self):
         """Validate that end time is after start time"""
