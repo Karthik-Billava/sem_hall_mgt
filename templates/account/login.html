@@ -7,7 +7,7 @@
 {% block extra_css %}
 <style>
   .login-container {
-    max-width: 450px;
+    max-width: 650px;
     margin: 4rem auto;
   }
   
@@ -43,7 +43,7 @@
   }
   
   .login-body {
-    padding: 2rem;
+    padding: 2.5rem;
   }
   
   .login-btn {
@@ -74,6 +74,33 @@
     color: #2980b9;
     text-decoration: underline;
   }
+  
+  .form-error {
+    color: #e74c3c;
+    font-size: 0.9rem;
+    margin-top: 0.25rem;
+  }
+  
+  .error-container {
+    background-color: rgba(231, 76, 60, 0.1);
+    border-left: 4px solid #e74c3c;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    border-radius: 4px;
+  }
+  
+  .error-container ul {
+    margin-bottom: 0;
+    padding-left: 1rem;
+  }
+  
+  .input-error {
+    border-color: #e74c3c;
+  }
+  
+  .input-error:focus {
+    box-shadow: 0 0 0 0.25rem rgba(231, 76, 60, 0.25);
+  }
 </style>
 {% endblock %}
 
@@ -88,6 +115,22 @@
       <p>Sign in to your account to continue</p>
     </div>
     <div class="login-body">
+      {% if form.errors %}
+      <div class="error-container mb-4">
+        <p class="mb-1"><strong><i class="fas fa-exclamation-circle me-2"></i>Please correct the errors below:</strong></p>
+        <ul>
+          {% for field in form %}
+            {% for error in field.errors %}
+              <li>{{ error }}</li>
+            {% endfor %}
+          {% endfor %}
+          {% for error in form.non_field_errors %}
+            <li>{{ error }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+      
       <form class="login" method="POST" action="{% url 'account_login' %}">
         {% csrf_token %}
         
@@ -95,16 +138,22 @@
           <label for="id_login" class="form-label">Username or Email</label>
           <div class="input-group">
             <span class="input-group-text"><i class="fas fa-user"></i></span>
-            <input type="text" name="login" placeholder="Username or email" class="form-control" required id="id_login">
+            <input type="text" name="login" placeholder="Username or email" class="form-control {% if form.login.errors %}input-error{% endif %}" required id="id_login">
           </div>
+          {% if form.login.errors %}
+            <div class="form-error">{{ form.login.errors.0 }}</div>
+          {% endif %}
         </div>
         
         <div class="mb-4">
           <label for="id_password" class="form-label">Password</label>
           <div class="input-group">
             <span class="input-group-text"><i class="fas fa-lock"></i></span>
-            <input type="password" name="password" placeholder="Password" class="form-control" required id="id_password">
+            <input type="password" name="password" placeholder="Password" class="form-control {% if form.password.errors %}input-error{% endif %}" required id="id_password">
           </div>
+          {% if form.password.errors %}
+            <div class="form-error">{{ form.password.errors.0 }}</div>
+          {% endif %}
         </div>
         
         {% if redirect_field_value %}

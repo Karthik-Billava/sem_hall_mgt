@@ -7,7 +7,7 @@
 {% block extra_css %}
 <style>
   .signup-container {
-    max-width: 500px;
+    max-width: 700px;
     margin: 4rem auto;
   }
   
@@ -43,7 +43,7 @@
   }
   
   .signup-body {
-    padding: 2rem;
+    padding: 2.5rem;
   }
   
   .signup-btn {
@@ -82,6 +82,47 @@
   .input-group-text {
     background-color: #f8f9fa;
   }
+  
+  .form-error {
+    color: #e74c3c;
+    font-size: 0.9rem;
+    margin-top: 0.25rem;
+  }
+  
+  .error-container {
+    background-color: rgba(231, 76, 60, 0.1);
+    border-left: 4px solid #e74c3c;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    border-radius: 4px;
+  }
+  
+  .error-container ul {
+    margin-bottom: 0;
+    padding-left: 1rem;
+  }
+  
+  .input-error {
+    border-color: #e74c3c;
+  }
+  
+  .input-error:focus {
+    box-shadow: 0 0 0 0.25rem rgba(231, 76, 60, 0.25);
+  }
+  
+  .password-requirements {
+    background-color: rgba(52, 152, 219, 0.1);
+    border-left: 4px solid #3498db;
+    padding: 1rem;
+    margin-top: 0.5rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+  }
+  
+  .password-requirements ul {
+    margin-bottom: 0;
+    padding-left: 1.5rem;
+  }
 </style>
 {% endblock %}
 
@@ -96,6 +137,22 @@
       <p>Join our platform to book venues</p>
     </div>
     <div class="signup-body">
+      {% if form.errors %}
+      <div class="error-container mb-4">
+        <p class="mb-1"><strong><i class="fas fa-exclamation-circle me-2"></i>Please correct the errors below:</strong></p>
+        <ul>
+          {% for field in form %}
+            {% for error in field.errors %}
+              <li>{{ error }}</li>
+            {% endfor %}
+          {% endfor %}
+          {% for error in form.non_field_errors %}
+            <li>{{ error }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+      
       <form class="signup" id="signup_form" method="post" action="{% url 'account_signup' %}">
         {% csrf_token %}
         
@@ -103,23 +160,41 @@
           <label for="id_username" class="form-label">Username</label>
           <div class="input-group">
             <span class="input-group-text"><i class="fas fa-user"></i></span>
-            <input type="text" name="username" placeholder="Username" class="form-control" required id="id_username">
+            <input type="text" name="username" placeholder="Username" class="form-control {% if form.username.errors %}input-error{% endif %}" required id="id_username" value="{{ form.username.value|default:'' }}">
           </div>
+          {% if form.username.errors %}
+            <div class="form-error">{{ form.username.errors.0 }}</div>
+          {% endif %}
         </div>
         
         <div class="form-group">
           <label for="id_email" class="form-label">Email</label>
           <div class="input-group">
             <span class="input-group-text"><i class="fas fa-envelope"></i></span>
-            <input type="email" name="email" placeholder="Email address" class="form-control" required id="id_email">
+            <input type="email" name="email" placeholder="Email address" class="form-control {% if form.email.errors %}input-error{% endif %}" required id="id_email" value="{{ form.email.value|default:'' }}">
           </div>
+          {% if form.email.errors %}
+            <div class="form-error">{{ form.email.errors.0 }}</div>
+          {% endif %}
         </div>
         
         <div class="form-group">
           <label for="id_password1" class="form-label">Password</label>
           <div class="input-group">
             <span class="input-group-text"><i class="fas fa-lock"></i></span>
-            <input type="password" name="password1" placeholder="Password" class="form-control" required id="id_password1">
+            <input type="password" name="password1" placeholder="Password" class="form-control {% if form.password1.errors %}input-error{% endif %}" required id="id_password1">
+          </div>
+          {% if form.password1.errors %}
+            <div class="form-error">{{ form.password1.errors.0 }}</div>
+          {% endif %}
+          <div class="password-requirements mt-2">
+            <p class="mb-1"><i class="fas fa-info-circle me-1"></i><strong>Password requirements:</strong></p>
+            <ul>
+              <li>At least 8 characters long</li>
+              <li>Cannot be similar to your personal information</li>
+              <li>Cannot be a commonly used password</li>
+              <li>Cannot be entirely numeric</li>
+            </ul>
           </div>
         </div>
         
@@ -127,8 +202,11 @@
           <label for="id_password2" class="form-label">Confirm Password</label>
           <div class="input-group">
             <span class="input-group-text"><i class="fas fa-lock"></i></span>
-            <input type="password" name="password2" placeholder="Confirm password" class="form-control" required id="id_password2">
+            <input type="password" name="password2" placeholder="Confirm password" class="form-control {% if form.password2.errors %}input-error{% endif %}" required id="id_password2">
           </div>
+          {% if form.password2.errors %}
+            <div class="form-error">{{ form.password2.errors.0 }}</div>
+          {% endif %}
         </div>
         
         {% if redirect_field_value %}
