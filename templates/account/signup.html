@@ -167,6 +167,33 @@
           {% endif %}
         </div>
         
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group">
+              <label for="id_first_name" class="form-label">First Name</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-user"></i></span>
+                <input type="text" name="first_name" placeholder="First Name" class="form-control {% if form.first_name.errors %}input-error{% endif %}" required id="id_first_name" value="{{ form.first_name.value|default:'' }}">
+              </div>
+              {% if form.first_name.errors %}
+                <div class="form-error">{{ form.first_name.errors.0 }}</div>
+              {% endif %}
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group">
+              <label for="id_last_name" class="form-label">Last Name</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-user"></i></span>
+                <input type="text" name="last_name" placeholder="Last Name" class="form-control {% if form.last_name.errors %}input-error{% endif %}" required id="id_last_name" value="{{ form.last_name.value|default:'' }}">
+              </div>
+              {% if form.last_name.errors %}
+                <div class="form-error">{{ form.last_name.errors.0 }}</div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        
         <div class="form-group">
           <label for="id_email" class="form-label">Email</label>
           <div class="input-group">
@@ -176,6 +203,23 @@
           {% if form.email.errors %}
             <div class="form-error">{{ form.email.errors.0 }}</div>
           {% endif %}
+        </div>
+        
+        <div class="form-group">
+          <label for="id_user_type" class="form-label">Account Type</label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="fas fa-users-cog"></i></span>
+            <select name="user_type" class="form-control {% if form.user_type.errors %}input-error{% endif %}" id="id_user_type">
+              <option value="regular" {% if form.user_type.value == 'regular' %}selected{% endif %}>Regular User</option>
+              <option value="venue_manager" {% if form.user_type.value == 'venue_manager' %}selected{% endif %}>Venue Manager</option>
+            </select>
+          </div>
+          {% if form.user_type.errors %}
+            <div class="form-error">{{ form.user_type.errors.0 }}</div>
+          {% endif %}
+          <div class="form-text text-muted">
+            <small>Select "Venue Manager" if you want to list and manage venues.</small>
+          </div>
         </div>
         
         <div class="form-group">

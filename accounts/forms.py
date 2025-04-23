@@ -3,25 +3,28 @@ from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
 from .models import UserProfile, Review
 
-class CustomUserCreationForm(UserCreationForm):
-    """Custom user registration form"""
-    email = forms.EmailField(required=True)
+class CustomSignupForm(forms.Form):
+    """Custom fields for signup form"""
     first_name = forms.CharField(max_length=30, required=True)
     last_name = forms.CharField(max_length=30, required=True)
+    user_type = forms.ChoiceField(
+        choices=UserProfile.USER_TYPES,
+        required=True,
+        initial='regular',
+        help_text='Select "Venue Manager" if you want to list and manage venues.'
+    )
     
-    class Meta:
-        model = User
-        fields = ('username', 'email', 'first_name', 'last_name', 'password1', 'password2')
-    
-    def save(self, commit=True):
-        user = super().save(commit=False)
-        user.email = self.cleaned_data['email']
+    def signup(self, request, user):
+        """Save the user's profile"""
+        # Set first name and last name
         user.first_name = self.cleaned_data['first_name']
         user.last_name = self.cleaned_data['last_name']
+        user.save()
         
-        if commit:
-            user.save()
-        return user
+        # Update profile with user type
+        profile = UserProfile.objects.get_or_create(user=user)[0]
+        profile.user_type = self.cleaned_data['user_type']
+        profile.save()
 
 class UserProfileForm(forms.ModelForm):
     """Form for user profile"""
@@ -30,17 +33,11 @@ class UserProfileForm(forms.ModelForm):
     
     class Meta:
         model = UserProfile
-        fields = ('phone_number', 'address', 'profile_picture', 'bio', 'date_of_birth', 'user_type')
+        fields = ('phone_number', 'address', 'profile_picture', 'bio', 'date_of_birth')
         widgets = {
             'date_of_birth': forms.DateInput(attrs={'type': 'date'}),
             'bio': forms.Textarea(attrs={'rows': 4}),
             'address': forms.Textarea(attrs={'rows': 3}),
-        }
-        labels = {
-            'user_type': 'Account Type',
-        }
-        help_texts = {
-            'user_type': 'Select "Venue Manager" if you want to list and manage venues.',
         }
     
     def __init__(self, *args, **kwargs):
