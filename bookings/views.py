@@ -160,6 +160,7 @@ def approve_booking(request, booking_id):
     
     if request.method == 'POST':
         booking.status = 'approved'
+        booking.approval_time = timezone.now()  # Set the approval time
         booking.save()
         
         # Notify user
@@ -169,7 +170,7 @@ def approve_booking(request, booking_id):
             verb='approved your booking for',
             target=booking.venue,
             action_object=booking,
-            description=f"Your booking for {booking.venue.name} on {booking.date} has been approved"
+            description=f"Your booking for {booking.venue.name} on {booking.date} has been approved. Please complete payment within 24 hours."
         )
         
         messages.success(request, 'The booking has been approved successfully.')

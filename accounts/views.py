@@ -39,6 +39,14 @@ def edit_profile(request):
 def booking_history(request):
     """View for user booking history"""
     bookings = Booking.objects.filter(user=request.user).order_by('-created_at')
+    
+    # Add payment_exists property to bookings
+    for booking in bookings:
+        try:
+            booking.payment_exists = hasattr(booking, 'payment') and booking.payment.status == 'completed'
+        except:
+            booking.payment_exists = False
+    
     return render(request, 'accounts/booking_history.html', {'bookings': bookings})
 
 @login_required

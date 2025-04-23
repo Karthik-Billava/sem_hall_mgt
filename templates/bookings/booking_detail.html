@@ -183,6 +183,39 @@
                                 <i class="fas fa-credit-card me-2"></i>Make Payment
                             </a>
                         </div>
+                        
+                        <!-- Payment Countdown Timer -->
+                        {% if booking.approval_time %}
+                        <div class="card mb-3">
+                            <div class="card-body p-3">
+                                <h6 class="card-subtitle mb-2 text-danger">
+                                    <i class="fas fa-clock me-2"></i>Payment Deadline
+                                </h6>
+                                <p class="small text-muted mb-2">Your booking will be automatically cancelled if payment is not completed within 24 hours of approval.</p>
+                                
+                                <div class="text-center" id="countdown-timer">
+                                    <div class="d-flex justify-content-center">
+                                        <div class="px-2 text-center">
+                                            <div class="countdown-value h4 mb-0" id="hours">00</div>
+                                            <div class="countdown-label small">Hours</div>
+                                        </div>
+                                        <div class="px-2 text-center">
+                                            <div class="countdown-value h4 mb-0" id="minutes">00</div>
+                                            <div class="countdown-label small">Minutes</div>
+                                        </div>
+                                        <div class="px-2 text-center">
+                                            <div class="countdown-value h4 mb-0" id="seconds">00</div>
+                                            <div class="countdown-label small">Seconds</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="progress mt-2" style="height: 5px;">
+                                    <div class="progress-bar bg-danger" id="countdown-progress" role="progressbar" style="width: 100%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
                     {% endif %}
                 {% elif user == booking.venue.manager %}
                     {% if booking.status == 'pending' %}
@@ -235,4 +268,77 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+{% if user == booking.user and booking.status == 'approved' and booking.approval_time and not payment %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get approval time and calculate deadline
+        const approvalTime = new Date("{{ booking.approval_time|date:'c' }}");
+        const deadlineTime = new Date(approvalTime.getTime() + (24 * 60 * 60 * 1000)); // 24 hours in milliseconds
+        
+        // Elements
+        const hoursElement = document.getElementById('hours');
+        const minutesElement = document.getElementById('minutes');
+        const secondsElement = document.getElementById('seconds');
+        const progressBar = document.getElementById('countdown-progress');
+        
+        // Update countdown every second
+        const countdownInterval = setInterval(updateCountdown, 1000);
+        
+        // Initial update
+        updateCountdown();
+        
+        function updateCountdown() {
+            const now = new Date();
+            
+            // If current time is past the deadline
+            if (now >= deadlineTime) {
+                clearInterval(countdownInterval);
+                hoursElement.textContent = '00';
+                minutesElement.textContent = '00';
+                secondsElement.textContent = '00';
+                progressBar.style.width = '0%';
+                
+                // Show expired message
+                const countdownTimer = document.getElementById('countdown-timer');
+                countdownTimer.innerHTML = '<div class="alert alert-danger py-2">Payment deadline expired!</div>';
+                return;
+            }
+            
+            // Calculate remaining time
+            const totalSeconds = Math.floor((deadlineTime - now) / 1000);
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+            
+            // Calculate progress percentage (inverted, so it goes from 100% to 0%)
+            const totalDurationSeconds = 24 * 60 * 60; // 24 hours in seconds
+            const elapsedSeconds = totalDurationSeconds - totalSeconds;
+            const progressPercentage = 100 - ((elapsedSeconds / totalDurationSeconds) * 100);
+            
+            // Update elements
+            hoursElement.textContent = hours.toString().padStart(2, '0');
+            minutesElement.textContent = minutes.toString().padStart(2, '0');
+            secondsElement.textContent = seconds.toString().padStart(2, '0');
+            
+            // Update progress bar
+            progressBar.style.width = progressPercentage + '%';
+            
+            // Change color based on time remaining
+            if (totalSeconds < 3600) { // less than 1 hour
+                progressBar.classList.remove('bg-warning', 'bg-danger');
+                progressBar.classList.add('bg-danger');
+            } else if (totalSeconds < 10800) { // less than 3 hours
+                progressBar.classList.remove('bg-success', 'bg-danger');
+                progressBar.classList.add('bg-warning');
+            } else {
+                progressBar.classList.remove('bg-warning', 'bg-danger');
+                progressBar.classList.add('bg-success');
+            }
+        }
+    });
+</script>
+{% endif %}
 {% endblock %} 

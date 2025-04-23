@@ -34,13 +34,27 @@
                     <td>{{ booking.date|date:"F d, Y" }}</td>
                     <td>{{ booking.start_time|time:"g:i A" }} - {{ booking.end_time|time:"g:i A" }}</td>
                     <td>
-                      <span class="badge {% if booking.status == 'confirmed' %}bg-success{% elif booking.status == 'pending' %}bg-warning{% elif booking.status == 'cancelled' %}bg-danger{% else %}bg-secondary{% endif %}">
+                      <span class="badge {% if booking.status == 'approved' %}bg-success{% elif booking.status == 'pending' %}bg-warning{% elif booking.status == 'cancelled' %}bg-danger{% elif booking.status == 'rejected' %}bg-danger{% else %}bg-secondary{% endif %}">
                         {{ booking.get_status_display }}
                       </span>
+                      
+                      {% if booking.status == 'approved' and booking.approval_time %}
+                        {% if not booking.payment_exists %}
+                          <div class="small text-danger mt-1">
+                            <i class="fas fa-clock me-1"></i>Payment due: {{ booking.get_payment_deadline|date:"M d, g:i A" }}
+                          </div>
+                        {% endif %}
+                      {% endif %}
                     </td>
-                    <td>₹{{ booking.total_price }}</td>
+                    <td>₹{{ booking.total_cost }}</td>
                     <td>
-                      {% if booking.status == 'pending' or booking.status == 'confirmed' %}
+                      {% if booking.status == 'approved' and booking.approval_time and not booking.payment_exists %}
+                        <a href="{% url 'make_payment' booking_id=booking.id %}" class="btn btn-sm btn-success mb-1">
+                          <i class="fas fa-credit-card me-1"></i>Pay Now
+                        </a>
+                      {% endif %}
+                      
+                      {% if booking.status == 'pending' or booking.status == 'approved' %}
                         <a href="{% url 'cancel_booking' booking_id=booking.id %}" class="btn btn-sm btn-danger">Cancel</a>
                       {% endif %}
                       <a href="{% url 'booking_detail' booking_id=booking.id %}" class="btn btn-sm btn-primary">Details</a>

@@ -9,6 +9,10 @@ body {
     padding: 0;
 }
 
+.dropdown-menu{
+    background-color: #17a2b8;
+}
+
 .texta{
     color: #000000;
     background-color:  #f8f9fa;

@@ -27,6 +27,7 @@ class Booking(models.Model):
     total_cost = models.DecimalField(max_digits=10, decimal_places=2)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    approval_time = models.DateTimeField(null=True, blank=True)
     
     class Meta:
         ordering = ['-date', '-start_time']
@@ -50,16 +51,40 @@ class Booking(models.Model):
         )
         return booking_datetime > now
     
-    def is_active(self):
-        """Check if this booking is currently active"""
+    def get_payment_deadline(self):
+        """Get the payment deadline (24 hours after approval)"""
+        if self.approval_time:
+            return self.approval_time + timezone.timedelta(hours=24)
+        return None
+    
+    def get_remaining_payment_time(self):
+        """Get remaining time for payment in seconds"""
+        if self.status != 'approved' or not self.approval_time:
+            return 0
+            
+        # If payment already exists, return 0
+        try:
+            if self.payment and self.payment.status == 'completed':
+                return 0
+        except:
+            pass
+            
         now = timezone.now()
-        start_datetime = timezone.make_aware(
-            timezone.datetime.combine(self.date, self.start_time)
-        )
-        end_datetime = timezone.make_aware(
-            timezone.datetime.combine(self.date, self.end_time)
-        )
-        return start_datetime <= now <= end_datetime
+        deadline = self.get_payment_deadline()
+        
+        if now >= deadline:
+            return 0
+            
+        time_remaining = deadline - now
+        return time_remaining.total_seconds()
+        
+    def is_payment_deadline_passed(self):
+        """Check if payment deadline has passed"""
+        if self.approval_time:
+            now = timezone.now()
+            deadline = self.get_payment_deadline()
+            return now > deadline
+        return False
 
 class Payment(models.Model):
     """Model for booking payments"""
