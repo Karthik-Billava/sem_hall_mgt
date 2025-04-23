@@ -4,29 +4,122 @@
 
 {% block title %}{% trans "Sign In" %}{% endblock %}
 
-{% block content %}
-<div class="row justify-content-center">
-  <div class="col-md-6">
-    <div class="card shadow">
-      <div class="card-header bg-primary text-white">
-        <h3 class="mb-0">{% trans "Sign In" %}</h3>
-      </div>
-      <div class="card-body">
-        <p>{% blocktrans %}If you have not created an account yet, then please <a href="{{ signup_url }}">sign up</a> first.{% endblocktrans %}</p>
+{% block extra_css %}
+<style>
+  .login-container {
+    max-width: 450px;
+    margin: 4rem auto;
+  }
+  
+  .login-card {
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+  }
+  
+  .login-header {
+    background: linear-gradient(135deg, #3498db, #2c3e50);
+    padding: 2rem;
+    text-align: center;
+    position: relative;
+  }
+  
+  .login-header h3 {
+    color: white;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+  
+  .login-header p {
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 0;
+  }
+  
+  .login-icon {
+    font-size: 3rem;
+    color: white;
+    margin-bottom: 1rem;
+  }
+  
+  .login-body {
+    padding: 2rem;
+  }
+  
+  .login-btn {
+    padding: 0.8rem;
+    font-weight: 500;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+  }
+  
+  .login-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+  }
+  
+  .signup-link {
+    text-align: center;
+    margin-top: 1.5rem;
+  }
+  
+  .signup-link a {
+    color: #3498db;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.3s ease;
+  }
+  
+  .signup-link a:hover {
+    color: #2980b9;
+    text-decoration: underline;
+  }
+</style>
+{% endblock %}
 
-        <form class="login" method="POST" action="{% url 'account_login' %}">
-          {% csrf_token %}
-          {{ form|crispy }}
-          {% if redirect_field_value %}
-          <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
-          {% endif %}
-          <div class="text-end mt-3">
-            <a class="button secondaryAction" href="{% url 'account_reset_password' %}">{% trans "Forgot Password?" %}</a>
+{% block content %}
+<div class="login-container">
+  <div class="login-card card">
+    <div class="login-header">
+      <div class="login-icon">
+        <i class="fas fa-user-circle"></i>
+      </div>
+      <h3>{% trans "Welcome Back" %}</h3>
+      <p>Sign in to your account to continue</p>
+    </div>
+    <div class="login-body">
+      <form class="login" method="POST" action="{% url 'account_login' %}">
+        {% csrf_token %}
+        
+        <div class="mb-3">
+          <label for="id_login" class="form-label">Username or Email</label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="fas fa-user"></i></span>
+            <input type="text" name="login" placeholder="Username or email" class="form-control" required id="id_login">
           </div>
-          <div class="d-grid gap-2 mt-4">
-            <button class="btn btn-primary btn-block" type="submit">{% trans "Sign In" %}</button>
+        </div>
+        
+        <div class="mb-4">
+          <label for="id_password" class="form-label">Password</label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="fas fa-lock"></i></span>
+            <input type="password" name="password" placeholder="Password" class="form-control" required id="id_password">
           </div>
-        </form>
+        </div>
+        
+        {% if redirect_field_value %}
+        <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+        {% endif %}
+        
+        <div class="d-grid gap-2 mt-4">
+          <button class="btn btn-primary login-btn" type="submit">
+            <i class="fas fa-sign-in-alt me-2"></i>{% trans "Sign In" %}
+          </button>
+        </div>
+      </form>
+      
+      <div class="signup-link">
+        <p>Don't have an account? <a href="{% url 'account_signup' %}">Sign up now</a></p>
       </div>
     </div>
   </div>

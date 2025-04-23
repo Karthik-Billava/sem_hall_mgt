@@ -4,26 +4,146 @@
 
 {% block title %}{% trans "Sign Up" %}{% endblock %}
 
-{% block content %}
-<div class="row justify-content-center">
-  <div class="col-md-6">
-    <div class="card shadow">
-      <div class="card-header bg-primary text-white">
-        <h3 class="mb-0">{% trans "Sign Up" %}</h3>
-      </div>
-      <div class="card-body">
-        <p>{% blocktrans %}Already have an account? Then please <a href="{{ login_url }}">sign in</a>.{% endblocktrans %}</p>
+{% block extra_css %}
+<style>
+  .signup-container {
+    max-width: 500px;
+    margin: 4rem auto;
+  }
+  
+  .signup-card {
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+  }
+  
+  .signup-header {
+    background: linear-gradient(135deg, #3498db, #2c3e50);
+    padding: 2rem;
+    text-align: center;
+    position: relative;
+  }
+  
+  .signup-header h3 {
+    color: white;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+  
+  .signup-header p {
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 0;
+  }
+  
+  .signup-icon {
+    font-size: 3rem;
+    color: white;
+    margin-bottom: 1rem;
+  }
+  
+  .signup-body {
+    padding: 2rem;
+  }
+  
+  .signup-btn {
+    padding: 0.8rem;
+    font-weight: 500;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+  }
+  
+  .signup-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+  }
+  
+  .login-link {
+    text-align: center;
+    margin-top: 1.5rem;
+  }
+  
+  .login-link a {
+    color: #3498db;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.3s ease;
+  }
+  
+  .login-link a:hover {
+    color: #2980b9;
+    text-decoration: underline;
+  }
+  
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+  
+  .input-group-text {
+    background-color: #f8f9fa;
+  }
+</style>
+{% endblock %}
 
-        <form class="signup" id="signup_form" method="post" action="{% url 'account_signup' %}">
-          {% csrf_token %}
-          {{ form|crispy }}
-          {% if redirect_field_value %}
-          <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
-          {% endif %}
-          <div class="d-grid gap-2 mt-4">
-            <button class="btn btn-primary btn-block" type="submit">{% trans "Sign Up" %}</button>
+{% block content %}
+<div class="signup-container">
+  <div class="signup-card card">
+    <div class="signup-header">
+      <div class="signup-icon">
+        <i class="fas fa-user-plus"></i>
+      </div>
+      <h3>{% trans "Create Account" %}</h3>
+      <p>Join our platform to book venues</p>
+    </div>
+    <div class="signup-body">
+      <form class="signup" id="signup_form" method="post" action="{% url 'account_signup' %}">
+        {% csrf_token %}
+        
+        <div class="form-group">
+          <label for="id_username" class="form-label">Username</label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="fas fa-user"></i></span>
+            <input type="text" name="username" placeholder="Username" class="form-control" required id="id_username">
           </div>
-        </form>
+        </div>
+        
+        <div class="form-group">
+          <label for="id_email" class="form-label">Email</label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+            <input type="email" name="email" placeholder="Email address" class="form-control" required id="id_email">
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="id_password1" class="form-label">Password</label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="fas fa-lock"></i></span>
+            <input type="password" name="password1" placeholder="Password" class="form-control" required id="id_password1">
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="id_password2" class="form-label">Confirm Password</label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="fas fa-lock"></i></span>
+            <input type="password" name="password2" placeholder="Confirm password" class="form-control" required id="id_password2">
+          </div>
+        </div>
+        
+        {% if redirect_field_value %}
+        <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+        {% endif %}
+        
+        <div class="d-grid gap-2 mt-4">
+          <button class="btn btn-primary signup-btn" type="submit">
+            <i class="fas fa-user-plus me-2"></i>{% trans "Sign Up" %}
+          </button>
+        </div>
+      </form>
+      
+      <div class="login-link">
+        <p>Already have an account? <a href="{% url 'account_login' %}">Sign in now</a></p>
       </div>
     </div>
   </div>
