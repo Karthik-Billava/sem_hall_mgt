@@ -21,9 +21,10 @@ class CustomSignupForm(forms.Form):
         user.last_name = self.cleaned_data['last_name']
         user.save()
         
-        # Update profile with user type
-        profile = UserProfile.objects.get_or_create(user=user)[0]
-        profile.user_type = self.cleaned_data['user_type']
+        # Set user type (create profile if needed)
+        user_type = self.cleaned_data['user_type']
+        profile, created = UserProfile.objects.get_or_create(user=user)
+        profile.user_type = user_type
         profile.save()
 
 class UserProfileForm(forms.ModelForm):

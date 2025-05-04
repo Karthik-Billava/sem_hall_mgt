@@ -1,6 +1,7 @@
 from django import forms
-from .models import Venue, VenueImage, Availability
-from datetime import datetime
+from .models import Venue, VenueImage
+from django.core.validators import MinValueValidator, MaxValueValidator
+from django.utils import timezone
 
 class VenueForm(forms.ModelForm):
     """Form for venue creation and editing"""
@@ -12,66 +13,30 @@ class VenueForm(forms.ModelForm):
             'has_wifi', 'has_catering', 'has_parking', 'has_air_conditioning'
         ]
         widgets = {
-            'description': forms.Textarea(attrs={'rows': 4}),
+            'description': forms.Textarea(attrs={'rows': 5}),
             'address': forms.Textarea(attrs={'rows': 3}),
-            'hourly_rate': forms.NumberInput(attrs={'min': '0', 'step': '0.01'}),
         }
+    
+    def clean_hourly_rate(self):
+        hourly_rate = self.cleaned_data.get('hourly_rate')
+        if hourly_rate <= 0:
+            raise forms.ValidationError("Hourly rate must be greater than zero")
+        return hourly_rate
 
 class VenueImageForm(forms.ModelForm):
     """Form for venue images"""
     class Meta:
         model = VenueImage
-        fields = ['image', 'caption', 'is_primary', 'is_cover']
+        fields = ['image', 'is_primary', 'is_cover', 'caption']
+        labels = {
+            'is_primary': 'Set as primary image',
+            'is_cover': 'Set as cover image',
+        }
         help_texts = {
-            'is_primary': 'Set as the main thumbnail image for venue listings',
-            'is_cover': 'Set as the cover image shown at the top of the venue detail page',
-            'caption': 'Add a short description for this image (optional)',
+            'is_primary': 'This image will be the main image shown in listings',
+            'is_cover': 'This image will be shown at the top of the venue detail page',
+            'caption': 'Optional caption to describe this image',
         }
-        widgets = {
-            'caption': forms.TextInput(attrs={'placeholder': 'E.g., "Main hall with projector setup"'}),
-        }
-
-class AvailabilityForm(forms.ModelForm):
-    """Form for venue availability"""
-    class Meta:
-        model = Availability
-        fields = ['date', 'start_time', 'end_time', 'is_available']
-        widgets = {
-            'date': forms.DateInput(attrs={
-                'type': 'date',
-                'class': 'form-control',
-                'min': datetime.now().date().strftime('%Y-%m-%d')
-            }),
-            'start_time': forms.TimeInput(attrs={
-                'type': 'time',
-                'class': 'form-control'
-            }),
-            'end_time': forms.TimeInput(attrs={
-                'type': 'time',
-                'class': 'form-control'
-            }),
-        }
-    
-    def clean_date(self):
-        """Validate that the date is not in the past"""
-        date = self.cleaned_data.get('date')
-        today = datetime.now().date()
-        
-        if date < today:
-            raise forms.ValidationError("You cannot set availability for past dates.")
-        
-        return date
-    
-    def clean(self):
-        """Validate that end time is after start time"""
-        cleaned_data = super().clean()
-        start_time = cleaned_data.get('start_time')
-        end_time = cleaned_data.get('end_time')
-        
-        if start_time and end_time and start_time >= end_time:
-            raise forms.ValidationError("End time must be after start time.")
-        
-        return cleaned_data
 
 class VenueSearchForm(forms.Form):
     """Form for searching venues"""

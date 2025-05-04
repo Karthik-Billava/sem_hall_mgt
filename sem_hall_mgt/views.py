@@ -20,4 +20,12 @@ def home_view(request):
         'popular_venues': popular_venues
     }
     
+    # If user is a venue manager, get their venues
+    if request.user.is_authenticated and hasattr(request.user, 'profile') and request.user.profile.user_type == 'venue_manager':
+        context['managed_venues'] = Venue.objects.filter(manager=request.user)
+        # Get recent bookings for these venues
+        context['venue_bookings'] = Booking.objects.filter(
+            venue__manager=request.user
+        ).order_by('-created_at')[:5]
+    
     return render(request, 'home.html', context) 

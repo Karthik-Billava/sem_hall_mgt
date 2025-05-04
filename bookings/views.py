@@ -6,8 +6,9 @@ from django.db.models import Q
 from django.http import JsonResponse
 from .models import Booking, Payment
 from .forms import BookingForm, PaymentForm
-from venues.models import Venue, Availability
+from venues.models import Venue
 from notifications.signals import notify
+from notifications.models import Notification
 from datetime import datetime, timedelta
 import decimal
 
@@ -39,29 +40,6 @@ def book_venue(request, venue_id):
                 Q(start_time__lt=booking.end_time, end_time__gt=booking.start_time)
             ).exists()
             
-            # Check if venue has explicitly defined availability slots
-            availability_exists = Availability.objects.filter(
-                venue=venue,
-                date=booking.date
-            ).exists()
-            
-            if availability_exists:
-                # If venue has explicitly defined availability slots, check that time slot is available
-                is_available = Availability.objects.filter(
-                    venue=venue,
-                    date=booking.date,
-                    start_time__lte=booking.start_time,
-                    end_time__gte=booking.end_time,
-                    is_available=True
-                ).exists()
-                
-                if not is_available:
-                    messages.error(request, 'The venue is not available for the selected time.')
-                    return render(request, 'bookings/book_venue.html', {'form': form, 'venue': venue})
-            
-            # If there are no availability records for this date, we assume the venue is available
-            # unless there's a conflicting booking
-            
             if conflicting_booking:
                 messages.error(request, 'There is already a booking for this time slot.')
                 return render(request, 'bookings/book_venue.html', {'form': form, 'venue': venue})
@@ -73,15 +51,27 @@ def book_venue(request, venue_id):
             
             booking.save()
             
-            # Notify venue manager
-            notify.send(
-                request.user,
+            # Check if a similar notification already exists (prevent duplicates)
+            existing_notifications = Notification.objects.filter(
                 recipient=venue.manager,
-                verb='requested a booking for',
-                target=venue,
-                action_object=booking,
-                description=f"New booking request for {venue.name} on {booking.date}"
+                actor_object_id=request.user.id,
+                target_object_id=venue.id,
+                action_object_content_type__model='booking',
+                action_object_object_id=booking.id,
+                verb='requested a booking for'
             )
+            
+            # Only send notification if no similar notification exists
+            if not existing_notifications.exists():
+                # Notify venue manager
+                notify.send(
+                    request.user,
+                    recipient=venue.manager,
+                    verb='requested a booking for',
+                    target=venue,
+                    action_object=booking,
+                    description=f"New booking request for {venue.name} on {booking.date}"
+                )
             
             messages.success(request, 'Your booking request has been submitted and is pending approval.')
             return redirect('booking_detail', booking_id=booking.id)
@@ -134,15 +124,27 @@ def cancel_booking(request, booking_id):
         booking.status = 'cancelled'
         booking.save()
         
-        # Notify venue manager
-        notify.send(
-            request.user,
+        # Check if a similar notification already exists (prevent duplicates)
+        existing_notifications = Notification.objects.filter(
             recipient=booking.venue.manager,
-            verb='cancelled a booking for',
-            target=booking.venue,
-            action_object=booking,
-            description=f"Booking for {booking.venue.name} on {booking.date} has been cancelled"
+            actor_object_id=request.user.id,
+            target_object_id=booking.venue.id,
+            action_object_content_type__model='booking',
+            action_object_object_id=booking.id,
+            verb='cancelled a booking for'
         )
+        
+        # Only send notification if no similar notification exists
+        if not existing_notifications.exists():
+            # Notify venue manager
+            notify.send(
+                request.user,
+                recipient=booking.venue.manager,
+                verb='cancelled a booking for',
+                target=booking.venue,
+                action_object=booking,
+                description=f"Booking for {booking.venue.name} on {booking.date} has been cancelled"
+            )
         
         messages.success(request, 'Your booking has been cancelled successfully.')
         return redirect('home')
@@ -163,15 +165,27 @@ def approve_booking(request, booking_id):
         booking.approval_time = timezone.now()  # Set the approval time
         booking.save()
         
-        # Notify user
-        notify.send(
-            request.user,
+        # Check if a similar notification already exists (prevent duplicates)
+        existing_notifications = Notification.objects.filter(
             recipient=booking.user,
-            verb='approved your booking for',
-            target=booking.venue,
-            action_object=booking,
-            description=f"Your booking for {booking.venue.name} on {booking.date} has been approved. Please complete payment within 24 hours."
+            actor_object_id=request.user.id,
+            target_object_id=booking.venue.id,
+            action_object_content_type__model='booking',
+            action_object_object_id=booking.id,
+            verb='approved your booking for'
         )
+        
+        # Only send notification if no similar notification exists
+        if not existing_notifications.exists():
+            # Notify user
+            notify.send(
+                request.user,
+                recipient=booking.user,
+                verb='approved your booking for',
+                target=booking.venue,
+                action_object=booking,
+                description=f"Your booking for {booking.venue.name} on {booking.date} has been approved. Please complete payment within 24 hours."
+            )
         
         messages.success(request, 'The booking has been approved successfully.')
         return redirect('venue_bookings', venue_id=booking.venue.id)
@@ -191,15 +205,27 @@ def reject_booking(request, booking_id):
         booking.status = 'rejected'
         booking.save()
         
-        # Notify user
-        notify.send(
-            request.user,
+        # Check if a similar notification already exists (prevent duplicates)
+        existing_notifications = Notification.objects.filter(
             recipient=booking.user,
-            verb='rejected your booking for',
-            target=booking.venue,
-            action_object=booking,
-            description=f"Your booking for {booking.venue.name} on {booking.date} has been rejected"
+            actor_object_id=request.user.id,
+            target_object_id=booking.venue.id,
+            action_object_content_type__model='booking',
+            action_object_object_id=booking.id,
+            verb='rejected your booking for'
         )
+        
+        # Only send notification if no similar notification exists
+        if not existing_notifications.exists():
+            # Notify user
+            notify.send(
+                request.user,
+                recipient=booking.user,
+                verb='rejected your booking for',
+                target=booking.venue,
+                action_object=booking,
+                description=f"Your booking for {booking.venue.name} on {booking.date} has been rejected"
+            )
         
         messages.success(request, 'The booking has been rejected successfully.')
         return redirect('venue_bookings', venue_id=booking.venue.id)
@@ -233,95 +259,148 @@ def make_payment(request, booking_id):
             payment.status = 'completed'  # In a real app, this would be handled by a payment gateway
             payment.save()
             
-            # Notify venue manager
-            notify.send(
-                request.user,
+            # Check if a similar notification already exists (prevent duplicates)
+            existing_notifications = Notification.objects.filter(
                 recipient=booking.venue.manager,
-                verb='made a payment for',
-                target=booking.venue,
-                action_object=booking,
-                description=f"Payment received for booking at {booking.venue.name} on {booking.date}"
+                actor_object_id=request.user.id,
+                target_object_id=booking.venue.id,
+                action_object_content_type__model='booking',
+                action_object_object_id=booking.id,
+                verb='made a payment for'
             )
+            
+            # Only send notification if no similar notification exists
+            if not existing_notifications.exists():
+                # Notify venue manager
+                notify.send(
+                    request.user,
+                    recipient=booking.venue.manager,
+                    verb='made a payment for',
+                    target=booking.venue,
+                    action_object=booking,
+                    description=f"Payment received for booking at {booking.venue.name} on {booking.date}"
+                )
             
             messages.success(request, 'Your payment has been processed successfully.')
             return redirect('booking_detail', booking_id=booking.id)
     else:
         form = PaymentForm()
     
-    return render(request, 'bookings/make_payment.html', {
-        'form': form,
-        'booking': booking,
-    })
+    return render(request, 'bookings/make_payment.html', {'form': form, 'booking': booking})
 
 @login_required
 def check_availability(request, venue_id):
-    """AJAX view for checking venue availability"""
-    venue = get_object_or_404(Venue, id=venue_id, is_active=True)
+    """AJAX view to check venue availability for a specific date"""
+    venue = get_object_or_404(Venue, id=venue_id)
+    
     date_str = request.GET.get('date')
     
     if not date_str:
-        return JsonResponse({'error': 'Date is required'}, status=400)
+        return JsonResponse({'available': False, 'message': 'No date provided'})
     
     try:
         date = datetime.strptime(date_str, '%Y-%m-%d').date()
     except ValueError:
-        return JsonResponse({'error': 'Invalid date format'}, status=400)
+        return JsonResponse({'available': False, 'message': 'Invalid date format'})
     
-    # Get availabilities for the date
-    availabilities = Availability.objects.filter(
-        venue=venue,
-        date=date,
-        is_available=True
-    ).order_by('start_time')
-    
-    # Get bookings for the date
+    # Get bookings for this date
     bookings = Booking.objects.filter(
         venue=venue,
         date=date,
         status__in=['pending', 'approved']
-    )
+    ).values('start_time', 'end_time')
     
-    # Format the data for the response
-    availability_data = []
+    # If there are no bookings, the entire day is available
+    if not bookings:
+        return JsonResponse({
+            'available': True,
+            'time_slots': [{'start': '09:00', 'end': '17:00'}],
+            'bookings': []
+        })
     
-    # If there are specific availability records, use them
-    if availabilities.exists():
-        for avail in availabilities:
-            # Check if there's a conflicting booking
-            is_booked = False
-            for booking in bookings:
-                if (booking.start_time < avail.end_time and booking.end_time > avail.start_time):
-                    is_booked = True
-                    break
-            
-            if not is_booked:
-                availability_data.append({
-                    'start_time': avail.start_time.strftime('%H:%M'),
-                    'end_time': avail.end_time.strftime('%H:%M'),
-                })
-    else:
-        # If no availability records, create default time slots (9 AM to 9 PM in 1-hour increments)
-        # and exclude times that have bookings
-        default_start = datetime.strptime('09:00', '%H:%M').time()
-        default_end = datetime.strptime('21:00', '%H:%M').time()
+    # Convert bookings to a list of dictionaries with string times
+    booking_list = []
+    for booking in bookings:
+        booking_list.append({
+            'start': booking['start_time'].strftime('%H:%M'),
+            'end': booking['end_time'].strftime('%H:%M')
+        })
+    
+    # Create a list of available time slots (this is simplified)
+    # In a real application, you would need a more sophisticated algorithm
+    # to find non-overlapping time slots
+    
+    # For now, just return a message that there are some bookings
+    return JsonResponse({
+        'available': True,
+        'message': 'There are some existing bookings on this date',
+        'bookings': booking_list
+    })
+
+@login_required
+def my_bookings(request):
+    """View for listing user's bookings"""
+    bookings = Booking.objects.filter(user=request.user).order_by('-created_at')
+    
+    return render(request, 'bookings/my_bookings.html', {'bookings': bookings})
+    
+@login_required
+def complete_booking(request, booking_id):
+    """View for completing a booking (for venue managers)"""
+    booking = get_object_or_404(Booking, id=booking_id, venue__manager=request.user)
+    
+    if booking.status != 'approved':
+        messages.error(request, 'Only approved bookings can be marked as completed.')
+        return redirect('booking_detail', booking_id=booking.id)
+    
+    if request.method == 'POST':
+        booking.status = 'completed'
+        booking.save()
         
-        current_time = default_start
-        while current_time < default_end:
-            next_time = (datetime.combine(date, current_time) + timedelta(hours=1)).time()
-            
-            # Check if this time slot conflicts with any booking
-            is_booked = False
-            for booking in bookings:
-                if (current_time < booking.end_time and next_time > booking.start_time):
-                    is_booked = True
-                    break
-            
-            if not is_booked:
-                availability_data.append({
-                    'start_time': current_time.strftime('%H:%M'),
-                    'end_time': next_time.strftime('%H:%M'),
-                })
-                
-            current_time = next_time
+        # Check if a similar notification already exists (prevent duplicates)
+        existing_notifications = Notification.objects.filter(
+            recipient=booking.user,
+            actor_object_id=request.user.id,
+            target_object_id=booking.venue.id,
+            action_object_content_type__model='booking',
+            action_object_object_id=booking.id,
+            verb='marked your booking as completed for'
+        )
+        
+        # Only send notification if no similar notification exists
+        if not existing_notifications.exists():
+            # Notify user that booking is completed
+            notify.send(
+                request.user,
+                recipient=booking.user,
+                verb='marked your booking as completed for',
+                target=booking.venue,
+                action_object=booking,
+                description=f"Your booking for {booking.venue.name} on {booking.date} has been completed."
+            )
+        
+        # Check if a review request notification already exists
+        review_request_notifications = Notification.objects.filter(
+            recipient=booking.user,
+            actor_object_id=request.user.id,
+            target_object_id=booking.venue.id,
+            action_object_content_type__model='booking',
+            action_object_object_id=booking.id,
+            verb='requests a review for'
+        )
+        
+        # Send a notification asking for a review if none exists
+        if not review_request_notifications.exists():
+            notify.send(
+                request.user,
+                recipient=booking.user,
+                verb='requests a review for',
+                target=booking.venue,
+                action_object=booking,
+                description=f"Please share your experience at {booking.venue.name}. Your feedback helps others make better choices!"
+            )
+        
+        messages.success(request, 'The booking has been marked as completed.')
+        return redirect('venue_bookings', venue_id=booking.venue.id)
     
-    return JsonResponse({'availabilities': availability_data}) 
+    return render(request, 'bookings/complete_booking.html', {'booking': booking}) 

@@ -11,7 +11,12 @@ from venues.models import Venue
 def profile_view(request):
     """View for user profile"""
     user = request.user
-    profile = user.profile
+    
+    # Get or create user profile
+    profile, created = UserProfile.objects.get_or_create(
+        user=user,
+        defaults={'user_type': 'regular'}
+    )
     bookings = Booking.objects.filter(user=user).order_by('-created_at')
     
     context = {
@@ -122,4 +127,13 @@ def delete_review(request, review_id):
     return render(request, 'accounts/delete_review.html', {
         'review': review,
         'venue': venue
-    }) 
+    })
+
+def user_context_processor(request):
+    """Context processor to add user profile information to all templates"""
+    context = {'is_venue_manager': False}
+    
+    if request.user.is_authenticated and hasattr(request.user, 'profile'):
+        context['is_venue_manager'] = request.user.profile.user_type == 'venue_manager'
+    
+    return context 

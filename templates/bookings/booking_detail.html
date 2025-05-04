@@ -170,7 +170,7 @@
                     {% if booking.status == 'pending' or booking.status == 'approved' %}
                         {% if not booking.is_past %}
                             <div class="d-grid gap-2 mb-3">
-                                <a href="" class="btn btn-danger">
+                                <a href="{% url "cancel_booking" booking.id %}" class="btn btn-danger">
                                     <i class="fas fa-times-circle me-2"></i>Cancel Booking
                                 </a>
                             </div>

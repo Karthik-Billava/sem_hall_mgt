@@ -177,18 +177,38 @@
           <!-- Availability Section -->
           <div class="mb-4">
             <h4 class="h5 mb-3">Upcoming Availability</h4>
-            {% if availabilities %}
+            {% if available_dates %}
               <div class="list-group">
-                {% for availability in availabilities|slice:":5" %}
-                  <div class="list-group-item">
+                {% for avail in available_dates|slice:":5" %}
+                  <div class="list-group-item {% if avail.has_bookings %}list-group-item-warning{% endif %}">
                     <div class="d-flex justify-content-between align-items-center">
-                      <span>{{ availability.date|date:"M d, Y" }}</span>
-                      <span>{{ availability.start_time|time:"g:i A" }} - {{ availability.end_time|time:"g:i A" }}</span>
+                      <span>{{ avail.date|date:"M d, Y" }} ({{ avail.date|date:"l" }})</span>
+                      <span>
+                        {% if avail.status == 'booked' %}
+                          <span class="badge bg-danger">Booked</span>
+                        {% elif avail.status == 'fully_booked' %}
+                          <span class="badge bg-danger">Fully Booked</span>
+                        {% elif avail.status == 'partially_booked' %}
+                          <span class="badge bg-warning text-dark">Partially Available</span>
+                        {% else %}
+                          <span class="badge bg-success">Available</span>
+                        {% endif %}
+                      </span>
                     </div>
+                    {% if avail.has_bookings %}
+                      <div class="mt-2 small">
+                        <p class="mb-1 text-muted">Existing bookings for this date:</p>
+                        <ul class="mb-0">
+                          {% for booking in avail.bookings %}
+                            <li>{{ booking.start_time|time:"g:i A" }} - {{ booking.end_time|time:"g:i A" }}: {{ booking.event_name }}</li>
+                          {% endfor %}
+                        </ul>
+                      </div>
+                    {% endif %}
                   </div>
                 {% endfor %}
               </div>
-              {% if availabilities|length > 5 %}
+              {% if all_available_dates|length > 5 %}
                 <div class="text-center mt-2">
                   <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#moreAvailability">
                     See More Dates
@@ -196,12 +216,32 @@
                 </div>
                 <div class="collapse mt-2" id="moreAvailability">
                   <div class="list-group">
-                    {% for availability in availabilities|slice:"5:" %}
-                      <div class="list-group-item">
+                    {% for avail in all_available_dates|slice:"5:15" %}
+                      <div class="list-group-item {% if avail.has_bookings %}list-group-item-warning{% endif %}">
                         <div class="d-flex justify-content-between align-items-center">
-                          <span>{{ availability.date|date:"M d, Y" }}</span>
-                          <span>{{ availability.start_time|time:"g:i A" }} - {{ availability.end_time|time:"g:i A" }}</span>
+                          <span>{{ avail.date|date:"M d, Y" }} ({{ avail.date|date:"l" }})</span>
+                          <span>
+                            {% if avail.status == 'booked' %}
+                              <span class="badge bg-danger">Booked</span>
+                            {% elif avail.status == 'fully_booked' %}
+                              <span class="badge bg-danger">Fully Booked</span>
+                            {% elif avail.status == 'partially_booked' %}
+                              <span class="badge bg-warning text-dark">Partially Available</span>
+                            {% else %}
+                              <span class="badge bg-success">Available</span>
+                            {% endif %}
+                          </span>
                         </div>
+                        {% if avail.has_bookings %}
+                          <div class="mt-2 small">
+                            <p class="mb-1 text-muted">Existing bookings for this date:</p>
+                            <ul class="mb-0">
+                              {% for booking in avail.bookings %}
+                                <li>{{ booking.start_time|time:"g:i A" }} - {{ booking.end_time|time:"g:i A" }}: {{ booking.event_name }}</li>
+                              {% endfor %}
+                            </ul>
+                          </div>
+                        {% endif %}
                       </div>
                     {% endfor %}
                   </div>
@@ -209,15 +249,7 @@
               {% endif %}
             {% else %}
               <div class="alert alert-info">
-                <p>The venue owner has not set up specific availability times.</p>
-                <p>Please contact the venue manager for booking information or check back later.</p>
-                {% if request.user == venue.manager %}
-                <div class="mt-2">
-                  <a href="{% url 'manage_availability' venue.id %}" class="btn btn-primary btn-sm">
-                    <i class="bi bi-calendar"></i> Set Availability
-                  </a>
-                </div>
-                {% endif %}
+                <p>No upcoming availability information found.</p>
               </div>
             {% endif %}
           </div>

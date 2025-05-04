@@ -4,11 +4,29 @@ from django.contrib import messages
 from django.db.models import Q, Avg
 from django.http import JsonResponse
 from django.core.paginator import Paginator
-from .models import Venue, VenueImage, Availability
-from .forms import VenueForm, VenueImageForm, AvailabilityForm
+from .models import Venue, VenueImage
+from .forms import VenueForm, VenueImageForm
 from accounts.models import Review
 from bookings.models import Booking
 from datetime import datetime, timedelta
+from functools import wraps
+from django.utils.decorators import method_decorator
+from django.utils import timezone
+
+def venue_manager_required(view_func):
+    """Decorator to check if user is a venue manager"""
+    @wraps(view_func)
+    def _wrapped_view(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            messages.error(request, 'You must be logged in to access this page.')
+            return redirect('account_login')
+            
+        if not hasattr(request.user, 'profile') or request.user.profile.user_type != 'venue_manager':
+            messages.error(request, 'You must be a venue manager to access this page.')
+            return redirect('home')
+            
+        return view_func(request, *args, **kwargs)
+    return _wrapped_view
 
 def venue_list(request):
     """View for listing all venues with search and filter functionality"""
@@ -66,15 +84,9 @@ def venue_detail(request, venue_id):
     venue = get_object_or_404(Venue, id=venue_id, is_active=True)
     reviews = Review.objects.filter(venue=venue).order_by('-created_at')
     
-    # Check availability for the next 30 days
-    today = datetime.now().date()
+    # Get future dates for the next 30 days
+    today = timezone.now().date()
     thirty_days_later = today + timedelta(days=30)
-    availabilities = Availability.objects.filter(
-        venue=venue,
-        date__gte=today,
-        date__lte=thirty_days_later,
-        is_available=True
-    ).order_by('date', 'start_time')
     
     # Get bookings for the next 30 days
     bookings = Booking.objects.filter(
@@ -82,24 +94,91 @@ def venue_detail(request, venue_id):
         date__gte=today,
         date__lte=thirty_days_later,
         status__in=['pending', 'approved']
-    )
+    ).select_related('payment').order_by('date', 'start_time')
     
-    # Process availability records
-    availability_list = []
-    for avail in availabilities:
-        # Check if there's a conflicting booking
-        is_booked = False
-        day_bookings = [b for b in bookings if b.date == avail.date]
-        for booking in day_bookings:
-            if (booking.start_time < avail.end_time and booking.end_time > avail.start_time):
-                is_booked = True
-                break
+    # Group bookings by date for display
+    booking_dates = {}
+    for booking in bookings:
+        date_str = booking.date.strftime('%Y-%m-%d')
         
-        if not is_booked:
-            availability_list.append({
-                'date': avail.date,
-                'start_time': avail.start_time,
-                'end_time': avail.end_time
+        # Check if booking has a completed payment
+        has_payment = False
+        try:
+            has_payment = booking.payment and booking.payment.status == 'completed'
+        except:
+            pass
+            
+        if date_str not in booking_dates:
+            booking_dates[date_str] = {
+                'bookings': [],
+                'has_confirmed_booking': False,
+                'time_slots_available': True,
+                'is_fully_booked': False  # New flag to track if date is fully booked
+            }
+            
+        # Add booking info to the date
+        booking_dates[date_str]['bookings'].append({
+            'start_time': booking.start_time,
+            'end_time': booking.end_time,
+            'event_name': booking.event_name,
+            'is_confirmed': has_payment or booking.status == 'approved'
+        })
+        
+        # If any booking is confirmed with payment, mark the date
+        if has_payment:
+            booking_dates[date_str]['has_confirmed_booking'] = True
+            
+        # For simplicity, if there are 3 or more bookings, or if the booking spans the entire day
+        # consider the date fully booked
+        if len(booking_dates[date_str]['bookings']) >= 3:
+            booking_dates[date_str]['time_slots_available'] = False
+            booking_dates[date_str]['is_fully_booked'] = True
+        
+        # Check if any booking covers a significant portion of the day (e.g., 8+ hours)
+        start_time = booking.start_time
+        end_time = booking.end_time
+        if start_time and end_time:
+            duration = datetime.combine(today, end_time) - datetime.combine(today, start_time)
+            if duration.seconds >= 8 * 3600 and has_payment:  # 8 hours or more and has payment
+                booking_dates[date_str]['is_fully_booked'] = True
+    
+    # Create available time slots for dates without full-day bookings
+    available_dates = []
+    for d in range(30):
+        current_date = today + timedelta(days=d)
+        date_str = current_date.strftime('%Y-%m-%d')
+        
+        if date_str in booking_dates:
+            # This date has some bookings
+            day_info = booking_dates[date_str]
+            
+            # If there are confirmed bookings with payment AND the day is fully booked,
+            # mark as fully booked
+            if day_info['has_confirmed_booking'] and day_info['is_fully_booked']:
+                status = 'fully_booked'
+            # If there are confirmed bookings but time slots still available, mark as booked
+            elif day_info['has_confirmed_booking']:
+                status = 'booked'
+            # If there are bookings but none confirmed and no slots available, mark as fully booked
+            elif not day_info['time_slots_available']:
+                status = 'fully_booked'
+            # Otherwise, some time slots are available
+            else:
+                status = 'partially_booked'
+                
+            available_dates.append({
+                'date': current_date,
+                'has_bookings': True,
+                'status': status,
+                'bookings': day_info['bookings']
+            })
+        else:
+            # This date has no bookings
+            available_dates.append({
+                'date': current_date,
+                'has_bookings': False,
+                'status': 'available',
+                'bookings': []
             })
     
     # Get average rating
@@ -108,18 +187,21 @@ def venue_detail(request, venue_id):
     context = {
         'venue': venue,
         'reviews': reviews,
-        'availabilities': availability_list,
+        'available_dates': available_dates[:10],  # Only show first 10 for simplicity
+        'all_available_dates': available_dates,
         'avg_rating': avg_rating,
     }
     return render(request, 'venues/venue_detail.html', context)
 
 @login_required
+@venue_manager_required
 def manage_venues(request):
     """View for managing venues (for venue managers)"""
     venues = Venue.objects.filter(manager=request.user)
     return render(request, 'venues/manage_venues.html', {'venues': venues})
 
 @login_required
+@venue_manager_required
 def add_venue(request):
     """View for adding a new venue"""
     if request.method == 'POST':
@@ -128,6 +210,12 @@ def add_venue(request):
             venue = form.save(commit=False)
             venue.manager = request.user
             venue.save()
+            
+            # Always ensure user is a venue manager
+            if hasattr(request.user, 'profile'):
+                request.user.profile.user_type = 'venue_manager'
+                request.user.profile.save()
+            
             messages.success(request, 'Venue added successfully!')
             return redirect('manage_venues')
     else:
@@ -136,6 +224,7 @@ def add_venue(request):
     return render(request, 'venues/add_venue.html', {'form': form})
 
 @login_required
+@venue_manager_required
 def edit_venue(request, venue_id):
     """View for editing a venue"""
     venue = get_object_or_404(Venue, id=venue_id, manager=request.user)
@@ -152,6 +241,7 @@ def edit_venue(request, venue_id):
     return render(request, 'venues/edit_venue.html', {'form': form, 'venue': venue})
 
 @login_required
+@venue_manager_required
 def delete_venue(request, venue_id):
     """View for deleting a venue"""
     venue = get_object_or_404(Venue, id=venue_id, manager=request.user)
@@ -165,6 +255,7 @@ def delete_venue(request, venue_id):
     return render(request, 'venues/delete_venue.html', {'venue': venue})
 
 @login_required
+@venue_manager_required
 def manage_venue_images(request, venue_id):
     """View for managing venue images"""
     venue = get_object_or_404(Venue, id=venue_id, manager=request.user)
@@ -194,6 +285,7 @@ def manage_venue_images(request, venue_id):
     return render(request, 'venues/manage_venue_images.html', context)
 
 @login_required
+@venue_manager_required
 def delete_venue_image(request, image_id):
     """View for deleting a venue image"""
     image = get_object_or_404(VenueImage, id=image_id, venue__manager=request.user)
@@ -214,12 +306,13 @@ def delete_venue_image(request, image_id):
     return render(request, 'venues/delete_venue_image.html', {'image': image})
 
 @login_required
+@venue_manager_required
 def set_primary_image(request, image_id):
-    """View for setting a venue image as primary"""
+    """View for setting an image as primary"""
     image = get_object_or_404(VenueImage, id=image_id, venue__manager=request.user)
     venue_id = image.venue.id
     
-    # Clear primary flag on all images for this venue
+    # First, unset all primary images for this venue
     VenueImage.objects.filter(venue_id=venue_id).update(is_primary=False)
     
     # Set this image as primary
@@ -230,12 +323,13 @@ def set_primary_image(request, image_id):
     return redirect('manage_venue_images', venue_id=venue_id)
 
 @login_required
+@venue_manager_required
 def set_cover_image(request, image_id):
-    """View for setting a venue image as cover image"""
+    """View for setting an image as cover"""
     image = get_object_or_404(VenueImage, id=image_id, venue__manager=request.user)
     venue_id = image.venue.id
     
-    # Clear cover flag on all images for this venue
+    # First, unset all cover images for this venue
     VenueImage.objects.filter(venue_id=venue_id).update(is_cover=False)
     
     # Set this image as cover
@@ -246,57 +340,7 @@ def set_cover_image(request, image_id):
     return redirect('manage_venue_images', venue_id=venue_id)
 
 @login_required
-def manage_availability(request, venue_id):
-    """View for managing venue availability"""
-    venue = get_object_or_404(Venue, id=venue_id, manager=request.user)
-    
-    # Filter out past availabilities to keep the list clean
-    today = datetime.now().date()
-    availabilities = Availability.objects.filter(
-        venue=venue, 
-        date__gte=today
-    ).order_by('date', 'start_time')
-    
-    if request.method == 'POST':
-        form = AvailabilityForm(request.POST)
-        if form.is_valid():
-            availability = form.save(commit=False)
-            availability.venue = venue
-            availability.save()
-            messages.success(request, 'Availability added successfully!')
-            return redirect('manage_availability', venue_id=venue.id)
-    else:
-        # Set default values for the form
-        default_start = datetime.strptime('09:00', '%H:%M').time()
-        default_end = datetime.strptime('17:00', '%H:%M').time()
-        form = AvailabilityForm(initial={
-            'date': today,
-            'start_time': default_start,
-            'end_time': default_end,
-            'is_available': True
-        })
-    
-    context = {
-        'venue': venue,
-        'availabilities': availabilities,
-        'form': form,
-    }
-    return render(request, 'venues/manage_availability.html', context)
-
-@login_required
-def delete_availability(request, availability_id):
-    """View for deleting venue availability"""
-    availability = get_object_or_404(Availability, id=availability_id, venue__manager=request.user)
-    venue_id = availability.venue.id
-    
-    if request.method == 'POST':
-        availability.delete()
-        messages.success(request, 'Availability deleted successfully!')
-        return redirect('manage_availability', venue_id=venue_id)
-    
-    return render(request, 'venues/delete_availability.html', {'availability': availability})
-
-@login_required
+@venue_manager_required
 def venue_bookings(request, venue_id):
     """View for viewing bookings for a specific venue"""
     venue = get_object_or_404(Venue, id=venue_id, manager=request.user)

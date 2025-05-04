@@ -2,43 +2,124 @@
 
 {% block title %}Delete Availability{% endblock %}
 
+{% block extra_css %}
+<style>
+  .custom-card {
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  }
+  
+  .action-button {
+    border-radius: 50px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 15px;
+    transition: all 0.2s;
+  }
+  
+  .action-button i {
+    margin-right: 8px;
+  }
+  
+  .badge-status {
+    padding: 6px 12px;
+    font-weight: 500;
+    border-radius: 30px;
+  }
+  
+  .info-item {
+    padding: 12px 15px;
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  
+  .info-item:last-child {
+    border-bottom: none;
+  }
+  
+  .info-title {
+    font-weight: 600;
+    color: #495057;
+  }
+  
+  .info-value {
+    color: #6c757d;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container my-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow-sm">
-                <div class="card-header bg-danger text-white">
-                    <h5 class="mb-0">Delete Availability</h5>
-                </div>
-                <div class="card-body">
-                    <p>Are you sure you want to delete the following availability?</p>
-                    <ul class="list-group mb-4">
-                        <li class="list-group-item"><strong>Venue:</strong> {{ availability.venue.name }}</li>
-                        <li class="list-group-item"><strong>Date:</strong> {{ availability.date }}</li>
-                        <li class="list-group-item"><strong>Time:</strong> {{ availability.start_time }} to {{ availability.end_time }}</li>
-                        <li class="list-group-item">
-                            <strong>Status:</strong>
-                            {% if availability.is_available %}
-                                <span class="badge bg-success">Available</span>
-                            {% else %}
-                                <span class="badge bg-danger">Unavailable</span>
-                            {% endif %}
-                        </li>
-                    </ul>
-                    <form method="post">
-                        {% csrf_token %}
-                        <div class="d-flex justify-content-between">
-                            <a href="{% url 'manage_availability' availability.venue.id %}" class="btn btn-secondary">
-                                <i class="bi bi-x-circle"></i> Cancel
-                            </a>
-                            <button type="submit" class="btn btn-danger">
-                                <i class="bi bi-trash"></i> Confirm Delete
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="{% url 'manage_venues' %}">Manage Venues</a></li>
+          <li class="breadcrumb-item"><a href="{% url 'manage_availability' availability.venue.id %}">Manage Availability</a></li>
+          <li class="breadcrumb-item active">Delete Availability</li>
+        </ol>
+      </nav>
+      
+      <div class="custom-card">
+        <div class="card-header bg-white border-bottom-0 pt-4">
+          <h4 class="mb-0 text-danger">Confirm Deletion</h4>
         </div>
+        <div class="card-body">
+          <div class="alert alert-light border-start border-danger border-3 bg-light mb-4">
+            <div class="d-flex">
+              <div class="me-3">
+                <i class="fas fa-exclamation-triangle text-danger fa-lg"></i>
+              </div>
+              <div>
+                <h6 class="mb-1">Warning</h6>
+                <p class="mb-0 small">This action cannot be undone. This will permanently delete the selected availability slot.</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="mb-4">
+            <div class="info-item">
+              <span class="info-title">Venue</span>
+              <span class="info-value">{{ availability.venue.name }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-title">Date</span>
+              <span class="info-value">{{ availability.date }} ({{ availability.date|date:"l" }})</span>
+            </div>
+            <div class="info-item">
+              <span class="info-title">Time</span>
+              <span class="info-value">{{ availability.start_time }} to {{ availability.end_time }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-title">Status</span>
+              <span>
+                {% if availability.is_available %}
+                  <span class="badge bg-success badge-status">Available</span>
+                {% else %}
+                  <span class="badge bg-danger badge-status">Blocked</span>
+                {% endif %}
+              </span>
+            </div>
+          </div>
+          
+          <form method="post">
+            {% csrf_token %}
+            <div class="d-flex justify-content-between">
+              <a href="{% url 'manage_availability' availability.venue.id %}" class="btn btn-outline-secondary action-button">
+                <i class="fas fa-arrow-left"></i>Cancel
+              </a>
+              <button type="submit" class="btn btn-danger action-button">
+                <i class="fas fa-trash"></i>Confirm Delete
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
+  </div>
 </div>
 {% endblock %} 

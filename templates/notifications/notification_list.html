@@ -42,9 +42,9 @@
                 <div class="tab-content" id="notificationTabsContent">
                     <div class="tab-pane fade show active" id="all" role="tabpanel" aria-labelledby="all-tab">
                         {% if notifications %}
-                            <div class="list-group">
+                            <div class="list-group" id="all-notifications-list">
                                 {% for notification in notifications %}
-                                    <div class="list-group-item list-group-item-action {% if not notification.unread %}bg-light{% endif %}">
+                                    <div class="list-group-item list-group-item-action {% if not notification.unread %}bg-light{% endif %}" id="notification-{{ notification.id }}">
                                         <div class="d-flex w-100 justify-content-between">
                                             <h5 class="mb-1">
                                                 {% if notification.unread %}
@@ -74,13 +74,13 @@
                                             </div>
                                             <div>
                                                 {% if notification.unread %}
-                                                    <a href="{% url 'mark_as_read' notification_id=notification.id %}" class="btn btn-sm btn-outline-secondary">
+                                                    <a href="{% url 'mark_as_read' notification_id=notification.id %}" class="btn btn-sm btn-outline-secondary mark-read-btn" data-notification-id="{{ notification.id }}">
                                                         <i class="fas fa-check me-1"></i>Mark as Read
                                                     </a>
                                                 {% endif %}
-                                                <a href="{% url 'delete_notification' notification_id=notification.id %}" class="btn btn-sm btn-outline-danger">
+                                                <button type="button" class="btn btn-sm btn-outline-danger delete-notification-btn" data-notification-id="{{ notification.id }}">
                                                     <i class="fas fa-trash me-1"></i>Delete
-                                                </a>
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
@@ -98,9 +98,9 @@
                     </div>
                     <div class="tab-pane fade" id="unread" role="tabpanel" aria-labelledby="unread-tab">
                         {% if notifications.unread %}
-                            <div class="list-group">
+                            <div class="list-group" id="unread-notifications-list">
                                 {% for notification in notifications.unread %}
-                                    <div class="list-group-item list-group-item-action">
+                                    <div class="list-group-item list-group-item-action" id="unread-notification-{{ notification.id }}">
                                         <div class="d-flex w-100 justify-content-between">
                                             <h5 class="mb-1">
                                                 <span class="badge bg-primary me-2">New</span>
@@ -127,12 +127,12 @@
                                                 {% endif %}
                                             </div>
                                             <div>
-                                                <a href="{% url 'mark_as_read' notification_id=notification.id %}" class="btn btn-sm btn-outline-secondary">
+                                                <button type="button" class="btn btn-sm btn-outline-secondary mark-read-btn" data-notification-id="{{ notification.id }}">
                                                     <i class="fas fa-check me-1"></i>Mark as Read
-                                                </a>
-                                                <a href="{% url 'delete_notification' notification_id=notification.id %}" class="btn btn-sm btn-outline-danger">
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-danger delete-notification-btn" data-notification-id="{{ notification.id }}">
                                                     <i class="fas fa-trash me-1"></i>Delete
-                                                </a>
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
@@ -159,6 +159,7 @@
 <script>
     // Enable real-time notifications via WebSocket
     document.addEventListener('DOMContentLoaded', function() {
+        // WebSocket connection for real-time notifications
         const notificationSocket = new WebSocket(
             'ws://' + window.location.host + '/ws/notifications/'
         );
@@ -187,6 +188,135 @@
         if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
             Notification.requestPermission();
         }
+        
+        // Delete notification with AJAX
+        const deleteButtons = document.querySelectorAll('.delete-notification-btn');
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const notificationId = this.getAttribute('data-notification-id');
+                if (confirm('Are you sure you want to delete this notification?')) {
+                    // Create CSRF token
+                    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                    
+                    // Create and send fetch request
+                    fetch(`/notifications/delete/${notificationId}/`, {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRFToken': csrfToken,
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            // Remove the notification from both lists
+                            const allNotificationElement = document.getElementById(`notification-${notificationId}`);
+                            const unreadNotificationElement = document.getElementById(`unread-notification-${notificationId}`);
+                            
+                            if (allNotificationElement) {
+                                allNotificationElement.remove();
+                            }
+                            
+                            if (unreadNotificationElement) {
+                                unreadNotificationElement.remove();
+                            }
+                            
+                            // Check if there are no more notifications and update the UI accordingly
+                            const allList = document.getElementById('all-notifications-list');
+                            const unreadList = document.getElementById('unread-notifications-list');
+                            
+                            if (allList && allList.children.length === 0) {
+                                document.getElementById('all').innerHTML = `
+                                    <div class="text-center py-5">
+                                        <div class="display-1 text-muted mb-3">
+                                            <i class="fas fa-bell-slash"></i>
+                                        </div>
+                                        <h3>No notifications</h3>
+                                        <p class="text-muted">You don't have any notifications yet.</p>
+                                    </div>
+                                `;
+                            }
+                            
+                            if (unreadList && unreadList.children.length === 0) {
+                                document.getElementById('unread').innerHTML = `
+                                    <div class="text-center py-5">
+                                        <div class="display-1 text-muted mb-3">
+                                            <i class="fas fa-check-circle"></i>
+                                        </div>
+                                        <h3>No unread notifications</h3>
+                                        <p class="text-muted">You're all caught up!</p>
+                                    </div>
+                                `;
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error deleting notification:', error);
+                    });
+                }
+            });
+        });
+        
+        // Mark as read functionality with AJAX
+        const markReadButtons = document.querySelectorAll('.mark-read-btn');
+        markReadButtons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                const notificationId = this.getAttribute('data-notification-id');
+                
+                // Create and send fetch request
+                fetch(`/notifications/mark-as-read/${notificationId}/`, {
+                    method: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        // Update UI: Remove badge, add background color, remove button
+                        const allNotificationElement = document.getElementById(`notification-${notificationId}`);
+                        const unreadNotificationElement = document.getElementById(`unread-notification-${notificationId}`);
+                        
+                        if (allNotificationElement) {
+                            allNotificationElement.classList.add('bg-light');
+                            const badge = allNotificationElement.querySelector('.badge.bg-primary');
+                            if (badge) badge.remove();
+                            const markReadBtn = allNotificationElement.querySelector('.mark-read-btn');
+                            if (markReadBtn) markReadBtn.remove();
+                        }
+                        
+                        if (unreadNotificationElement) {
+                            unreadNotificationElement.remove();
+                        }
+                        
+                        // Update unread count badges
+                        const unreadBadge = document.querySelector('#unread-tab .badge');
+                        if (unreadBadge) {
+                            const count = parseInt(unreadBadge.textContent) - 1;
+                            unreadBadge.textContent = count;
+                            
+                            // If no more unread notifications, update the unread tab content
+                            if (count === 0) {
+                                document.getElementById('unread').innerHTML = `
+                                    <div class="text-center py-5">
+                                        <div class="display-1 text-muted mb-3">
+                                            <i class="fas fa-check-circle"></i>
+                                        </div>
+                                        <h3>No unread notifications</h3>
+                                        <p class="text-muted">You're all caught up!</p>
+                                    </div>
+                                `;
+                            }
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error marking notification as read:', error);
+                });
+            });
+        });
     });
 </script>
 {% endblock %} 

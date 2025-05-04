@@ -65,6 +65,16 @@ class Venue(models.Model):
             return primary_image
         # Fall back to first image if no primary image
         return self.images.first()
+    
+    def get_upcoming_bookings(self, days=30):
+        """Get upcoming bookings for this venue"""
+        today = timezone.now().date()
+        end_date = today + timezone.timedelta(days=days)
+        return self.bookings.filter(
+            date__gte=today,
+            date__lte=end_date,
+            status__in=['pending', 'approved']
+        ).order_by('date', 'start_time')
 
 class VenueImage(models.Model):
     """Model for venue images"""
@@ -88,27 +98,4 @@ class VenueImage(models.Model):
             # Set other images for this venue as not cover
             VenueImage.objects.filter(venue=self.venue, is_cover=True).update(is_cover=False)
         
-        super().save(*args, **kwargs)
-
-class Availability(models.Model):
-    """Model for venue availability"""
-    venue = models.ForeignKey(Venue, on_delete=models.CASCADE, related_name='availability')
-    date = models.DateField()
-    start_time = models.TimeField()
-    end_time = models.TimeField()
-    is_available = models.BooleanField(default=True)
-    
-    class Meta:
-        verbose_name_plural = 'Availabilities'
-        ordering = ['date', 'start_time']
-        
-    def __str__(self):
-        return f"{self.venue.name} - {self.date} ({self.start_time} to {self.end_time})"
-    
-    def is_past(self):
-        """Check if this availability is in the past"""
-        now = timezone.now()
-        availability_datetime = timezone.make_aware(
-            timezone.datetime.combine(self.date, self.end_time)
-        )
-        return availability_datetime < now 
+        super().save(*args, **kwargs) 

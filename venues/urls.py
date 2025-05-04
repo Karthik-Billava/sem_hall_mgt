@@ -12,7 +12,5 @@ urlpatterns = [
     path('images/delete/<int:image_id>/', views.delete_venue_image, name='delete_venue_image'),
     path('images/set-primary/<int:image_id>/', views.set_primary_image, name='set_primary_image'),
     path('images/set-cover/<int:image_id>/', views.set_cover_image, name='set_cover_image'),
-    path('availability/<int:venue_id>/', views.manage_availability, name='manage_availability'),
-    path('availability/delete/<int:availability_id>/', views.delete_availability, name='delete_availability'),
     path('bookings/<int:venue_id>/', views.venue_bookings, name='venue_bookings'),
 ] 

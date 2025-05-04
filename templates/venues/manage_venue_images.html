@@ -4,134 +4,272 @@
 
 {% block title %}Manage Venue Images{% endblock %}
 
+{% block extra_css %}
+<style>
+  .image-card {
+    transition: all 0.3s ease;
+    border: none;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  }
+  
+  .image-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+  }
+  
+  .image-container {
+    position: relative;
+    height: 220px;
+  }
+  
+  .image-container img {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+  }
+  
+  .status-badges {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 10;
+  }
+  
+  .image-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .action-button {
+    border-radius: 50px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 15px;
+    transition: all 0.2s;
+  }
+  
+  .action-button i {
+    margin-right: 8px;
+  }
+  
+  .btn-primary-soft {
+    background-color: rgba(13, 110, 253, 0.1);
+    color: #0d6efd;
+    border: none;
+  }
+  
+  .btn-primary-soft:hover {
+    background-color: rgba(13, 110, 253, 0.2);
+    color: #0d6efd;
+  }
+  
+  .btn-info-soft {
+    background-color: rgba(13, 202, 240, 0.1);
+    color: #0dcaf0;
+    border: none;
+  }
+  
+  .btn-info-soft:hover {
+    background-color: rgba(13, 202, 240, 0.2);
+    color: #0dcaf0;
+  }
+  
+  .btn-danger-soft {
+    background-color: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+    border: none;
+  }
+  
+  .btn-danger-soft:hover {
+    background-color: rgba(220, 53, 69, 0.2);
+    color: #dc3545;
+  }
+  
+  .upload-card {
+    border: none;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  }
+  
+  .section-header {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: #333;
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 10px;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container py-5">
-  <div class="row">
-    <div class="col-md-12 mb-4">
+  <div class="row mb-4">
+    <div class="col-12">
       <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
           <li class="breadcrumb-item"><a href="{% url 'manage_venues' %}">Manage Venues</a></li>
-          <li class="breadcrumb-item active">Manage Images for {{ venue.name }}</li>
+          <li class="breadcrumb-item active">Manage Images</li>
         </ol>
       </nav>
-      <h1>Manage Images for {{ venue.name }}</h1>
+      <div class="d-flex justify-content-between align-items-center">
+        <h2 class="mb-0">{{ venue.name }} Images</h2>
+        <span class="badge bg-primary rounded-pill px-3 py-2">{{ images.count }} image(s)</span>
+      </div>
     </div>
   </div>
   
   <div class="row">
-    <div class="col-md-8">
-      <div class="card shadow mb-4">
-        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-          <h4 class="mb-0">Current Images</h4>
-          <span class="badge bg-light text-dark">{{ images.count }} image(s)</span>
-        </div>
-        <div class="card-body">
-          {% if images %}
-            <div class="row">
-              {% for image in images %}
-                <div class="col-md-6 mb-4">
-                  <div class="card h-100">
-                    <img src="{{ image.image.url }}" class="card-img-top" alt="Venue Image" style="height: 200px; object-fit: cover;">
-                    <div class="card-body">
-                      <div class="mb-2">
-                        {% if image.is_primary %}
-                          <span class="badge bg-success me-1">Primary</span>
-                        {% endif %}
-                        {% if image.is_cover %}
-                          <span class="badge bg-info me-1">Cover</span>
-                        {% endif %}
-                      </div>
-                      
-                      {% if image.caption %}
-                        <p class="card-text small">{{ image.caption }}</p>
+    <div class="col-lg-8">
+      <div class="mb-4">
+        <h4 class="section-header">Image Gallery</h4>
+      </div>
+      
+      {% if images %}
+        <div class="row">
+          {% for image in images %}
+            <div class="col-md-6 mb-4">
+              <div class="card image-card rounded-3 h-100">
+                <div class="image-container">
+                  <div class="status-badges">
+                    {% if image.is_primary %}
+                      <span class="badge bg-primary text-white">Primary</span>
+                    {% endif %}
+                    {% if image.is_cover %}
+                      <span class="badge bg-info text-white ms-1">Cover</span>
+                    {% endif %}
+                  </div>
+                  <img src="{{ image.image.url }}" alt="Venue Image">
+                </div>
+                
+                <div class="card-body">
+                  {% if image.caption %}
+                    <p class="card-text">{{ image.caption }}</p>
+                  {% endif %}
+                  
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <small class="text-muted">Uploaded: {{ image.uploaded_at|date:"M d, Y" }}</small>
+                  </div>
+                  
+                  <div class="image-buttons">
+                    <div class="d-flex mb-2">
+                      {% if not image.is_primary %}
+                        <form method="post" action="{% url 'set_primary_image' image_id=image.id %}" class="me-2 w-50">
+                          {% csrf_token %}
+                          <button type="submit" class="btn btn-primary-soft action-button w-100">
+                            <i class="fas fa-star"></i>Primary
+                          </button>
+                        </form>
+                      {% else %}
+                        <div class="me-2 w-50">
+                          <button class="btn btn-primary action-button w-100" disabled>
+                            <i class="fas fa-star"></i>Primary
+                          </button>
+                        </div>
                       {% endif %}
                       
-                      <p class="card-text text-muted small">Uploaded: {{ image.uploaded_at|date:"M d, Y" }}</p>
-                      
-                      <div class="d-flex flex-wrap justify-content-between mt-2">
-                        <div class="btn-group mb-2">
-                          {% if not image.is_primary %}
-                            <form method="post" action="{% url 'set_primary_image' image_id=image.id %}">
-                              {% csrf_token %}
-                              <button type="submit" class="btn btn-sm btn-outline-success">Set as Primary</button>
-                            </form>
-                          {% else %}
-                            <button class="btn btn-sm btn-outline-success" disabled>Primary</button>
-                          {% endif %}
-                          
-                          {% if not image.is_cover %}
-                            <form method="post" action="{% url 'set_cover_image' image_id=image.id %}">
-                              {% csrf_token %}
-                              <button type="submit" class="btn btn-sm btn-outline-info">Set as Cover</button>
-                            </form>
-                          {% else %}
-                            <button class="btn btn-sm btn-outline-info" disabled>Cover</button>
-                          {% endif %}
+                      {% if not image.is_cover %}
+                        <form method="post" action="{% url 'set_cover_image' image_id=image.id %}" class="w-50">
+                          {% csrf_token %}
+                          <button type="submit" class="btn btn-info-soft action-button w-100">
+                            <i class="fas fa-image"></i>Cover
+                          </button>
+                        </form>
+                      {% else %}
+                        <div class="w-50">
+                          <button class="btn btn-info action-button w-100 text-white" disabled>
+                            <i class="fas fa-image"></i>Cover
+                          </button>
                         </div>
-                        
-                        <a href="{% url 'delete_venue_image' image_id=image.id %}" class="btn btn-sm btn-outline-danger">
-                          <i class="fas fa-trash me-1"></i>Delete
-                        </a>
-                      </div>
+                      {% endif %}
                     </div>
+                    
+                    <a href="{% url 'delete_venue_image' image_id=image.id %}" class="btn btn-danger-soft action-button">
+                      <i class="fas fa-trash"></i>Remove Image
+                    </a>
                   </div>
                 </div>
-              {% endfor %}
+              </div>
             </div>
-          {% else %}
-            <div class="alert alert-info">
-              <p>No images have been uploaded for this venue yet. Add images to make your venue more attractive to potential customers.</p>
-            </div>
-          {% endif %}
+          {% endfor %}
         </div>
-      </div>
+      {% else %}
+        <div class="alert alert-light border rounded-3 shadow-sm">
+          <div class="d-flex">
+            <div class="me-3">
+              <i class="fas fa-images fa-2x text-primary"></i>
+            </div>
+            <div>
+              <h5 class="alert-heading">No Images Yet</h5>
+              <p>Add images to make your venue more attractive to potential customers. High-quality photos significantly increase booking rates.</p>
+            </div>
+          </div>
+        </div>
+      {% endif %}
     </div>
     
-    <div class="col-md-4">
-      <div class="card shadow">
-        <div class="card-header bg-success text-white">
-          <h4 class="mb-0">Upload New Image</h4>
+    <div class="col-lg-4">
+      <div class="card upload-card rounded-3 shadow-sm mb-4">
+        <div class="card-header bg-white border-bottom-0 pt-4">
+          <h4 class="mb-0 text-primary">Upload New Image</h4>
         </div>
         <div class="card-body">
           <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
             {{ form|crispy }}
-            <div class="d-grid gap-2 mt-3">
-              <button type="submit" class="btn btn-success">
-                <i class="fas fa-upload me-2"></i>Upload Image
+            <div class="d-grid gap-2 mt-4">
+              <button type="submit" class="btn btn-primary action-button">
+                <i class="fas fa-upload"></i>Upload Image
               </button>
-              <a href="{% url 'manage_venues' %}" class="btn btn-outline-secondary">
-                <i class="fas fa-arrow-left me-2"></i>Back to Venues
-              </a>
             </div>
           </form>
         </div>
       </div>
       
-      <div class="card shadow mt-4">
-        <div class="card-header bg-info text-white">
-          <h4 class="mb-0">Image Types Guide</h4>
+      <div class="card rounded-3 shadow-sm">
+        <div class="card-header bg-white border-bottom-0 pt-4">
+          <h4 class="mb-0 text-primary">Image Guidelines</h4>
         </div>
         <div class="card-body">
-          <ul class="list-group list-group-flush">
-            <li class="list-group-item">
-              <strong>Primary Image:</strong> Used as thumbnail in venue listings and search results
-            </li>
-            <li class="list-group-item">
-              <strong>Cover Image:</strong> Large banner image at the top of venue detail page
-            </li>
-            <li class="list-group-item">
-              <strong>Caption:</strong> Add a brief description of what's shown in the image
-            </li>
-            <li class="list-group-item">
-              <strong>Recommendations:</strong>
-              <ul>
-                <li>Primary: 600x400 pixels</li>
-                <li>Cover: 1200x400 pixels (wide landscape format)</li>
-                <li>Upload at least 5 images showing different areas of your venue</li>
-              </ul>
-            </li>
-          </ul>
+          <div class="mb-3">
+            <div class="d-flex align-items-center mb-2">
+              <span class="badge bg-primary me-2">
+                <i class="fas fa-star"></i>
+              </span>
+              <h6 class="mb-0">Primary Image</h6>
+            </div>
+            <p class="text-muted small">Used as thumbnail in venue listings and search results. Recommended size: 600×400px.</p>
+          </div>
+          
+          <div class="mb-3">
+            <div class="d-flex align-items-center mb-2">
+              <span class="badge bg-info text-white me-2">
+                <i class="fas fa-image"></i>
+              </span>
+              <h6 class="mb-0">Cover Image</h6>
+            </div>
+            <p class="text-muted small">Large banner image at the top of venue detail page. Recommended size: 1200×400px (wide landscape).</p>
+          </div>
+          
+          <div class="alert alert-light border-start border-primary border-3 bg-light">
+            <h6>Pro Tips</h6>
+            <ul class="mb-0 ps-3 small">
+              <li>Upload at least 5 high-quality images of different areas</li>
+              <li>Include photos of all available facilities (stage, seating, etc.)</li>
+              <li>Good lighting significantly improves appeal</li>
+              <li>Use landscape orientation for better display</li>
+            </ul>
+          </div>
+          
+          <div class="d-grid mt-4">
+            <a href="{% url 'manage_venues' %}" class="btn btn-outline-secondary action-button">
+              <i class="fas fa-arrow-left"></i>Back to Venues
+            </a>
+          </div>
         </div>
       </div>
     </div>

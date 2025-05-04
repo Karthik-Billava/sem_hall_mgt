@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 {% load static %}
+{% load notifications_tags %}
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -161,6 +162,9 @@
     {% block extra_css %}{% endblock %}
 </head>
 <body>
+    <!-- CSRF Token for AJAX requests -->
+    {% csrf_token %}
+
     <!-- Navigation -->
     <div class="navbar-wrapper">
         <nav class="navbar navbar-expand-lg navbar-dark">
@@ -186,7 +190,7 @@
                             </a>
                         </li>
                         {% if user.is_authenticated %}
-                            {% if user.profile.user_type == 'venue_manager' %}
+                            {% if is_venue_manager %}
                             <li class="nav-item">
                                 <a class="nav-link" href="{% url 'manage_venues' %}">
                                     <i class="fas fa-tasks nav-icon"></i>Manage Venues

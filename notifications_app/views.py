@@ -22,7 +22,8 @@ def mark_as_read(request, notification_id):
     )
     notification.mark_as_read()
     
-    if request.is_ajax():
+    # Check if it's an AJAX request based on HTTP header
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return JsonResponse({'status': 'success'})
     
     return redirect('notification_list')
@@ -32,7 +33,8 @@ def mark_all_as_read(request):
     """View for marking all notifications as read"""
     request.user.notifications.mark_all_as_read()
     
-    if request.is_ajax():
+    # Check if it's an AJAX request based on HTTP header
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return JsonResponse({'status': 'success'})
     
     return redirect('notification_list')
@@ -40,16 +42,22 @@ def mark_all_as_read(request):
 @login_required
 def delete_notification(request, notification_id):
     """View for deleting a notification"""
-    notification = get_object_or_404(
-        Notification, 
-        recipient=request.user,
-        id=notification_id
-    )
-    notification.delete()
+    try:
+        # First try to find the notification by recipient and ID
+        notification = Notification.objects.get(
+            recipient=request.user,
+            id=notification_id
+        )
+        notification.delete()
+        
+        # Check if it's an AJAX request based on HTTP header
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'status': 'success'})
+        
+        messages.success(request, 'Notification deleted successfully.')
+    except Notification.DoesNotExist:
+        # If notification doesn't exist, just inform the user and continue
+        messages.warning(request, 'The notification has already been deleted or does not exist.')
     
-    if request.is_ajax():
-        return JsonResponse({'status': 'success'})
-    
-    messages.success(request, 'Notification deleted successfully.')
     return redirect('notification_list')
 
