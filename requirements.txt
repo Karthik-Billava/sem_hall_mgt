@@ -20,6 +20,7 @@ cssselect2==0.7.0
 cycler==0.12.1
 defusedxml==0.7.1
 distlib==0.3.9
+dj-database-url==3.1.2
 Django==5.0.7
 django-allauth==0.58.2
 django-bootstrap4==23.2
@@ -34,6 +35,7 @@ fire==0.6.0
 flatbuffers==24.12.23
 fonttools==4.53.0
 gTTS==2.5.1
+gunicorn==26.2.0
 h11==0.14.0
 html5lib==1.1
 idna==3.6
@@ -67,6 +69,7 @@ Pillow==10.1.0
 platformdirs==4.3.6
 plyer==2.1.0
 protobuf==4.25.5
+psycopg2-binary==2.9.13
 pycparser==2.22
 pydyf==0.10.0
 pyinstaller==6.9.0
