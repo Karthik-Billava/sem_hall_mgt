@@ -10,9 +10,9 @@ services:
     runtime: python
     plan: free
 
-    buildCommand: ./build.sh
+    buildCommand: bash build.sh
 
-    startCommand: python -m gunicorn sem_hall_mgt.wsgi:application
+    startCommand: python -m gunicorn sem_hall_mgt.asgi:application -k uvicorn.workers.UvicornWorker
 
     envVars:
       - key: DATABASE_URL
@@ -23,5 +23,11 @@ services:
       - key: SECRET_KEY
         generateValue: true
 
+      - key: RENDER
+        value: "true"
+
       - key: WEB_CONCURRENCY
-        value: 2
+        value: "2"
+
+      - key: PYTHON_VERSION
+        value: "3.11.9"
