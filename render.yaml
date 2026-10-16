@@ -1,0 +1,27 @@
+databases:
+  - name: sem-hall-db
+    plan: free
+    databaseName: sem_hall_db
+    user: sem_hall_user
+
+services:
+  - type: web
+    name: sem-hall-mgt
+    runtime: python
+    plan: free
+
+    buildCommand: ./build.sh
+
+    startCommand: python -m gunicorn sem_hall_mgt.wsgi:application
+
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: sem-hall-db
+          property: connectionString
+
+      - key: SECRET_KEY
+        generateValue: true
+
+      - key: WEB_CONCURRENCY
+        value: 2
