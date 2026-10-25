@@ -24,8 +24,7 @@ if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 else:
-    # Serve user uploads from MEDIA_ROOT. For persistent Render uploads, attach
-    # a disk at /var/data and set MEDIA_ROOT=/var/data/media.
+    # Serve user uploads from the configured persistent media directory.
     urlpatterns += [
         re_path(
             r'^media/(?P<path>.*)$',

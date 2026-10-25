@@ -9,16 +9,22 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.environ.get(
-    'SECRET_KEY',
-    'django-insecure-local-development-key'
-)
+WASMER_DB_KEYS = ('DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USERNAME', 'DB_PASSWORD')
+WASMER_DB_CONFIGURED = any(key in os.environ for key in WASMER_DB_KEYS)
+IS_WASMER = WASMER_DB_CONFIGURED
+IS_HOSTED = 'RENDER' in os.environ or IS_WASMER
+
+SECRET_KEY = os.environ.get('SECRET_KEY')
+if not SECRET_KEY:
+    if IS_HOSTED:
+        raise RuntimeError('Set a strong SECRET_KEY in the hosting provider environment.')
+    SECRET_KEY = 'django-insecure-local-development-key'
 
 DEBUG = os.environ.get(
-    'DEBUG', 'false' if 'RENDER' in os.environ else 'true'
+    'DEBUG', 'false' if IS_HOSTED else 'true'
 ).lower() == 'true'
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.wasmer.app']
 
 RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
 
@@ -34,6 +40,9 @@ if not DEBUG:
     CSRF_COOKIE_SECURE = True
 
 CSRF_TRUSTED_ORIGINS = []
+
+if IS_WASMER:
+    CSRF_TRUSTED_ORIGINS.append('https://*.wasmer.app')
 
 if RENDER_EXTERNAL_HOSTNAME:
     CSRF_TRUSTED_ORIGINS.append(
@@ -103,16 +112,39 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'sem_hall_mgt.wsgi.application'
+WSGI_APPLICATION = 'sem_hall_mgt.wsgi.app'
 ASGI_APPLICATION = 'sem_hall_mgt.asgi.application'
 
-# Render supplies DATABASE_URL for PostgreSQL; local development uses SQLite.
-DATABASES = {
-    'default': dj_database_url.config(
-        default=f'sqlite:///{BASE_DIR / "db.sqlite3"}',
-        conn_max_age=600,
-    )
-}
+# Wasmer supplies DB_* values. Select PostgreSQL in Wasmer's database setup;
+# it defaults to MySQL when no engine is selected.
+if WASMER_DB_CONFIGURED:
+    missing_db_keys = [key for key in WASMER_DB_KEYS if not os.environ.get(key)]
+    if missing_db_keys:
+        raise RuntimeError(
+            'Wasmer database configuration is incomplete; missing: '
+            + ', '.join(missing_db_keys)
+        )
+
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.environ['DB_NAME'],
+            'USER': os.environ['DB_USERNAME'],
+            'PASSWORD': os.environ['DB_PASSWORD'],
+            'HOST': os.environ['DB_HOST'],
+            'PORT': os.environ['DB_PORT'],
+            'OPTIONS': {'sslmode': 'require'},
+            'CONN_MAX_AGE': 600,
+        }
+    }
+else:
+    # Render supplies DATABASE_URL; local development falls back to SQLite.
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=f'sqlite:///{BASE_DIR / "db.sqlite3"}',
+            conn_max_age=600,
+        )
+    }
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -144,8 +176,8 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Media files
 MEDIA_URL = '/media/'
-# Set MEDIA_ROOT to /var/data/media when a Render persistent disk is attached
-# at /var/data. Without a disk, Render's filesystem is temporary.
+# Wasmer: mount a volume at /data and set MEDIA_ROOT=/data/media to retain uploads.
+# Render: set MEDIA_ROOT to the path under its attached persistent disk.
 MEDIA_ROOT = os.environ.get('MEDIA_ROOT', os.path.join(BASE_DIR, 'media'))
 
 # Default primary key field type
