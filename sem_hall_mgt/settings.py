@@ -14,9 +14,13 @@ SECRET_KEY = os.environ.get(
     'django-insecure-local-development-key'
 )
 
-DEBUG = os.environ.get('DEBUG', 'false' if 'RENDER' in os.environ else 'true').lower() == 'true'
+IS_HOSTED = any(
+    os.environ.get(key)
+    for key in ('RENDER', 'WASMER', 'DB_HOST', 'DATABASE_URL')
+)
+DEBUG = os.environ.get('DEBUG', 'false' if IS_HOSTED else 'true').lower() == 'true'
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.wasmer.app']
 
 RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
 
@@ -32,6 +36,9 @@ if not DEBUG:
     CSRF_COOKIE_SECURE = True
 
 CSRF_TRUSTED_ORIGINS = []
+
+if IS_HOSTED:
+    CSRF_TRUSTED_ORIGINS.append('https://*.wasmer.app')
 
 if RENDER_EXTERNAL_HOSTNAME:
     CSRF_TRUSTED_ORIGINS.append(
@@ -101,16 +108,41 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'sem_hall_mgt.wsgi.application'
+WSGI_APPLICATION = 'sem_hall_mgt.wsgi.app'
 ASGI_APPLICATION = 'sem_hall_mgt.asgi.application'
 
 # Database
-DATABASES = {
-    'default': dj_database_url.config(
-        default=f'sqlite:///{BASE_DIR / "db.sqlite3"}',
-        conn_max_age=600
-    )
-}
+WASMER_DB_KEYS = ('DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USERNAME', 'DB_PASSWORD')
+WASMER_DB_CONFIGURED = any(key in os.environ for key in WASMER_DB_KEYS)
+
+if WASMER_DB_CONFIGURED:
+    missing_db_keys = [key for key in WASMER_DB_KEYS if not os.environ.get(key)]
+    if missing_db_keys:
+        raise RuntimeError(
+            'Wasmer database configuration is incomplete; missing: '
+            + ', '.join(missing_db_keys)
+        )
+
+    # Wasmer injects DB_* variables (not DATABASE_URL) and requires TLS.
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.environ['DB_NAME'],
+            'USER': os.environ['DB_USERNAME'],
+            'PASSWORD': os.environ['DB_PASSWORD'],
+            'HOST': os.environ['DB_HOST'],
+            'PORT': os.environ['DB_PORT'],
+            'OPTIONS': {'sslmode': 'require'},
+            'CONN_MAX_AGE': 600,
+        }
+    }
+else:
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=f'sqlite:///{BASE_DIR / "db.sqlite3"}',
+            conn_max_age=600,
+        )
+    }
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
